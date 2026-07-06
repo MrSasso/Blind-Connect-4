@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="it">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+    <title>Blind Connect 4</title>
+  </head>
+  <body>
+    
+    <div id="app">
+      <div id="splash-screen" class="screen">
+        <h1 class="title-red">BLIND</h1>
+        <h2 class="title-yellow">CONNECT 4</h2>
+        <h3 class="loading-text">LOADING THE GAME...</h3>
+      </div>
+
+      <div id="main-menu" class="screen hidden">
+        <h1 class="title-red">BLIND</h1>
+        <h2 class="title-yellow">CONNECT 4</h2>
+        
+        <div class="menu-buttons">
+          <button id="btn-new-game" class="btn-blue">NEW GAME</button>
+          <button id="btn-load-game" class="btn-blue">LOAD GAME</button>
+          <button id="btn-settings" class="btn-blue">SETTINGS</button>
+        </div>
+      </div>
+      <div id="config-screen" class="screen hidden">
+        
+        <div class="config-section">
+          <h3 class="config-title">DIFFICULTY</h3>
+          <div class="button-row">
+            <button class="btn-blue btn-half config-btn" data-category="difficulty" data-value="EASY">EASY</button>
+            <button class="btn-blue btn-half config-btn" data-category="difficulty" data-value="MEDIUM">MEDIUM</button>
+          </div>
+          <div class="button-row">
+            <button class="btn-blue btn-half config-btn" data-category="difficulty" data-value="HARD">HARD</button>
+            <button class="btn-blue btn-half config-btn" data-category="difficulty" data-value="EXTREME">EXTREME</button>
+          </div>
+        </div>
+
+        <div class="config-section">
+          <h3 class="config-title">STARTER</h3>
+          <div class="button-row">
+            <button class="btn-blue btn-half config-btn" data-category="starter" data-value="YOU">YOU</button>
+            <button class="btn-blue btn-half config-btn" data-category="starter" data-value="BOT">BOT</button>
+          </div>
+        </div>
+
+        <div class="config-section">
+          <h3 class="config-title">COLOR</h3>
+          <div class="button-row">
+            <button class="btn-blue btn-half config-btn" data-category="color" data-value="YELLOW">YELLOW</button>
+            <button class="btn-blue btn-half config-btn" data-category="color" data-value="RED">RED</button>
+          </div>
+        </div>
+
+        <div class="config-section">
+          <h3 class="config-title">TIME PER MOVE</h3>
+          <div class="button-row">
+            <button class="btn-blue btn-half config-btn" data-category="time" data-value="NO TIME">NO TIME</button>
+            <button class="btn-blue btn-half config-btn" data-category="time" data-value="15SEC">15SEC</button>
+          </div>
+        </div>
+
+        <button id="btn-play" class="btn-blue btn-play">PLAY</button>
+      </div>
+      <div id="game-screen" class="screen hidden">
+        
+        <div class="top-bar">
+          <button class="icon-btn">⚙️</button>
+          
+          <div class="timer-display">
+            <span class="timer-icon">⏱️</span>
+            <span id="time-left" class="timer-text">15</span>
+          </div>
+          
+          <div class="lives-display" id="lives-container">
+            <span class="heart">❤️</span>
+            <span class="heart">❤️</span>
+            <span class="heart">❤️</span>
+          </div>
+        </div>
+
+        <div class="game-display">
+          <h1 id="game-center-text" class="center-text">DECIDING...</h1>
+        </div>
+
+        <div class="controls-area">
+          
+          <div class="column-buttons" id="col-buttons">
+            <button class="col-btn" data-col="0">1</button>
+            <button class="col-btn" data-col="1">2</button>
+            <button class="col-btn" data-col="2">3</button>
+            <button class="col-btn" data-col="3">4</button>
+            <button class="col-btn" data-col="4">5</button>
+            <button class="col-btn" data-col="5">6</button>
+            <button class="col-btn" data-col="6">7</button>
+          </div>
+
+          <div class="action-row">
+            <button id="btn-action-primary" class="btn-transparent">REVEAL / SURRENDER</button>
+            <button id="btn-show-grid" class="btn-transparent hidden">SHOW</button>
+            <button id="btn-exit-game" class="btn-transparent hidden">EXIT</button>
+          </div>
+          
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
