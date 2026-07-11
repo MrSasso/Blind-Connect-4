@@ -29,7 +29,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const bot = new Bot();
     let turnTimer: number | null = null;
     
-    // VARIABILI PER LA FOTOGRAFIA DI FINE PARTITA
     let finalGrid: number[][] | null = null;
     let finalWinningCells: {c: number, r: number}[] = [];
     let finalLastMove: {col: number, player: number} | null = null;
@@ -265,7 +264,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (btnExitGame) btnExitGame.classList.remove('hidden');
         if (btnShowGrid) btnShowGrid.classList.remove('hidden');
         
-        // SALVA TUTTI I DATI PRIMA DI DISTRUGGERE IL MOTORE
         if (engine) {
             finalGrid = engine.getGridCopy();
             finalWinningCells = [...engine.winningCells];
@@ -304,7 +302,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const iconBtn = document.querySelector('.icon-btn');
     if (iconBtn) iconBtn.addEventListener('click', exitToMenu);
 
-    // --- DISEGNO DEL TABELLONE CON I NUOVI EFFETTI VISIVI ---
     if (btnShowGrid) {
         btnShowGrid.addEventListener('click', () => {
             if (!finalGrid || !revealBoard || !gameCenterText) return;
@@ -346,13 +343,11 @@ document.addEventListener('DOMContentLoaded', () => {
                         }
                     }
 
-                    // EFFETTO VITTORIA
                     const isWinCell = finalWinningCells.some(w => w.c === c && w.r === r);
                     if (isWinCell) {
                         cell.classList.add('winning-token-outline');
                     }
 
-                    // EFFETTO ULTIMA MOSSA (Solo la freccia in basso, il raggio l'abbiamo già messo)
                     if (finalLastMove && finalLastMove.col === c) {
                         if (r === 0) {
                             cell.classList.add('last-move-arrow');

@@ -3,7 +3,6 @@ export class GameEngine {
     public currentPlayer: number;
     public lives: number;
     
-    // NUOVI DATI PER LA GRAFICA (Vittoria e Ultima Mossa)
     public winningCells: {c: number, r: number}[] = [];
     public lastMove: {col: number, player: number} | null = null;
 
@@ -36,7 +35,6 @@ export class GameEngine {
         column.push(this.currentPlayer);
         const rowIndex = column.length - 1; 
         
-        // Salviamo chi ha fatto l'ultima mossa e in quale colonna
         this.lastMove = { col: colIndex, player: this.currentPlayer };
 
         if (this.checkWinFrom(colIndex, rowIndex, this.currentPlayer)) {
@@ -67,15 +65,18 @@ export class GameEngine {
 
     private checkWinFrom(col: number, row: number, player: number): boolean {
         const axes = [
-            [[1, 0], [-1, 0]],   
-            [[0, 1], [0, -1]],   
-            [[1, 1], [-1, -1]],  
-            [[1, -1], [-1, 1]]   
+            [[1, 0], [-1, 0]],
+            [[0, -1]],
+            [[1, 1], [-1, -1]], 
+            [[1, -1], [-1, 1]]  
         ];
+
+        let hasWon = false;
+        let allWinningCells: {c: number, r: number}[] = [];
 
         for (const axis of axes) {
             let count = 1; 
-            let cells = [{c: col, r: row}]; // Memorizza la pedina centrale
+            let currentAxisCells = [{c: col, r: row}];
 
             for (const [dc, dr] of axis) {
                 let c = col + dc;
@@ -83,17 +84,23 @@ export class GameEngine {
 
                 while (c >= 0 && c < 7 && r >= 0 && r < 6 && this.getToken(c, r) === player) {
                     count++;
-                    cells.push({c, r}); // Memorizza le altre pedine vincenti
+                    currentAxisCells.push({c, r});
                     c += dc;
                     r += dr;
                 }
             }
 
             if (count >= 4) {
-                this.winningCells = cells; // Le salva per passarle a main.ts
-                return true;
+                hasWon = true;
+                allWinningCells.push(...currentAxisCells); 
             }
         }
+
+        if (hasWon) {
+            this.winningCells = allWinningCells; 
+            return true;
+        }
+
         return false;
     }
 }
