@@ -162,6 +162,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
+    width: 100%;
 }
 
 .center-text {
@@ -222,4 +223,86 @@ body {
 
 .action-row .btn-transparent {
     flex: 1;
+}
+
+#reveal-board {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    grid-template-rows: repeat(6, 1fr);
+    gap: 5px;
+    background-color: #0E73C5;
+    padding: 10px;
+    border-radius: 12px;
+    width: 95%;
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+.board-cell {
+    background-color: #31363F;
+    border-radius: 50%;
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    box-shadow: inset 0px 4px 6px rgba(0,0,0,0.5);
+}
+
+.token-yellow {
+    background-color: #F6D04C;
+    box-shadow: inset 0px -4px 0px rgba(0,0,0,0.2); 
+}
+
+.token-red {
+    background-color: #E23D3D;
+    box-shadow: inset 0px -4px 0px rgba(0,0,0,0.2);
+}
+
+.board-cell {
+    position: relative; 
+    z-index: 1; /* I buchi vuoti stanno sul fondo */
+}
+
+.token-yellow, .token-red {
+    z-index: 3; /* Le pedine stanno DAVANTI al raggio di luce */
+}
+
+/* --- 1. IL RAGGIO DI LUCE A LINGUA (Il rettangolo che sfuma in alto) --- */
+.last-move-beam {
+    width: 100%;
+    height: 125%; /* Più alto del tabellone per uscire dal tetto */
+    transform: translateY(-20%); /* Lo spinge verso l'alto */
+    background: linear-gradient(to top, rgba(255,255,255,0) 0%, rgba(255,255,255,0.1) 40%, rgba(255,255,255,0.35) 80%, rgba(255,255,255,0) 100%);
+    pointer-events: none;
+    z-index: 2; /* Magia: DAVANTI ai buchi vuoti, ma DIETRO alle pedine colorate! */
+    border-radius: 10px 10px 0 0;
+}
+
+/* --- 2. CONTORNO VERDE VITTORIA (Risolto il bug) --- */
+/* Invece di usare ::after (che andava in conflitto con la freccia), uniamo l'ombra verde a quella della pedina */
+.token-yellow.winning-token-outline {
+    box-shadow: inset 0px -4px 0px rgba(0,0,0,0.2), 0 0 0 5px #4ade80, 0 0 20px #4ade80;
+    z-index: 4; /* Per farlo brillare sopra tutto */
+}
+.token-red.winning-token-outline {
+    box-shadow: inset 0px -4px 0px rgba(0,0,0,0.2), 0 0 0 5px #4ade80, 0 0 20px #4ade80;
+    z-index: 4;
+}
+
+/* --- 3. FRECCIA IN BASSO (Ora non si bugga più!) --- */
+.last-move-arrow::after {
+    content: '';
+    position: absolute;
+    bottom: -18px; 
+    left: 50%;
+    transform: translateX(-50%);
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+    border-bottom: 14px solid; 
+    z-index: 10;
+}
+
+.arrow-yellow::after {
+    border-bottom-color: #F6D04C;
+}
+.arrow-red::after {
+    border-bottom-color: #E23D3D;
 }
