@@ -8,13 +8,10 @@
   <body>
     
     <div id="app">
-      <div id="splash-screen" class="screen">
-        <h1 class="title-red">BLIND</h1>
-        <h2 class="title-yellow">CONNECT 4</h2>
-        <h3 class="loading-text">LOADING THE GAME...</h3>
-      </div>
 
-      <div id="main-menu" class="screen hidden">
+      <button id="btn-back" class="btn-transparent hidden">BACK</button>
+
+      <div id="main-menu" class="screen">
         <h1 class="title-red">BLIND</h1>
         <h2 class="title-yellow">CONNECT 4</h2>
         
@@ -24,6 +21,42 @@
           <button id="btn-settings" class="btn-blue">SETTINGS</button>
         </div>
       </div>
+
+      <!-- SCHERMATA SCELTA MODALITÀ -->
+      <div id="mode-selection" class="screen hidden">
+        <h1 class="mode-title">
+          <span class="text-red">CHOOSE</span><br>
+          <span class="text-yellow">MODE</span>
+        </h1>
+        
+        <div class="mode-cards-container">
+          
+          <!-- Tasto NORMAL -->
+          <button id="btn-mode-normal" class="mode-card">
+            <div class="mode-icon normal-icon-css">
+              <div class="token token-red"></div>
+              <div class="token token-yellow"></div>
+            </div>
+            <h2>NORMAL</h2>
+            <p>the classic version</p>
+          </button>
+
+          <!-- Tasto BLIND -->
+          <button id="btn-mode-blind" class="mode-card">
+            <div class="mode-icon blind-icon-css">
+              <div class="css-eye">
+                <div class="css-iris"></div>
+              </div>
+              <div class="css-slash"></div> 
+            </div>
+            <h2>BLIND</h2>
+            <p>you won't see the board</p>
+          </button>
+          
+        </div>
+      </div>
+
+      <!-- CONFIG SCREEN -->
       <div id="config-screen" class="screen hidden">
         
         <div class="config-section">
@@ -64,6 +97,8 @@
 
         <button id="btn-play" class="btn-blue btn-play">PLAY</button>
       </div>
+
+      <!-- GAME SCREEN -->
       <div id="game-screen" class="screen hidden">
         
         <div class="top-bar">

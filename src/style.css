@@ -43,11 +43,6 @@ body {
     letter-spacing: 1px;
 }
 
-.loading-text {
-    color: #8c96a3;
-    margin-top: 50px;
-}
-
 .menu-buttons {
     display: flex;
     flex-direction: column;
@@ -258,36 +253,35 @@ body {
 
 .board-cell {
     position: relative; 
-    z-index: 1; /* I buchi vuoti stanno sul fondo */
+    z-index: 1;
 }
 
 .token-yellow, .token-red {
-    z-index: 3; /* Le pedine stanno DAVANTI al raggio di luce */
+    z-index: 3;
 }
 
-/* --- 1. IL RAGGIO DI LUCE A LINGUA (Il rettangolo che sfuma in alto) --- */
+/* --- IL RAGGIO DI LUCE A LINGUA --- */
 .last-move-beam {
     width: 100%;
-    height: 125%; /* Più alto del tabellone per uscire dal tetto */
-    transform: translateY(-20%); /* Lo spinge verso l'alto */
+    height: 125%; 
+    transform: translateY(-20%); 
     background: linear-gradient(to top, rgba(255,255,255,0) 0%, rgba(255,255,255,0.1) 40%, rgba(255,255,255,0.35) 80%, rgba(255,255,255,0) 100%);
     pointer-events: none;
-    z-index: 2; /* Magia: DAVANTI ai buchi vuoti, ma DIETRO alle pedine colorate! */
+    z-index: 2; 
     border-radius: 10px 10px 0 0;
 }
 
-/* --- 2. CONTORNO VERDE VITTORIA (Risolto il bug) --- */
-/* Invece di usare ::after (che andava in conflitto con la freccia), uniamo l'ombra verde a quella della pedina */
+/* --- CONTORNO VERDE VITTORIA --- */
 .token-yellow.winning-token-outline {
     box-shadow: inset 0px -4px 0px rgba(0,0,0,0.2), 0 0 0 5px #4ade80, 0 0 20px #4ade80;
-    z-index: 4; /* Per farlo brillare sopra tutto */
+    z-index: 4; 
 }
 .token-red.winning-token-outline {
     box-shadow: inset 0px -4px 0px rgba(0,0,0,0.2), 0 0 0 5px #4ade80, 0 0 20px #4ade80;
     z-index: 4;
 }
 
-/* --- 3. FRECCIA IN BASSO (Ora non si bugga più!) --- */
+/* --- FRECCIA IN BASSO --- */
 .last-move-arrow::after {
     content: '';
     position: absolute;
@@ -305,4 +299,157 @@ body {
 }
 .arrow-red::after {
     border-bottom-color: #E23D3D;
+}
+
+/* --- SELEZIONE MODALITÀ --- */
+#mode-selection {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    gap: 2rem;
+}
+
+.mode-title {
+    text-align: center;
+    font-size: 2.8rem;
+    line-height: 1.1;
+    margin: 0;
+    font-weight: 900;
+}
+
+.mode-title .text-red { color: #E23D3D; } 
+.mode-title .text-yellow { color: #F6D04C; } 
+
+.mode-cards-container {
+    display: flex;
+    gap: 1.5rem;
+}
+
+.mode-card {
+    background-color: #8C939D;
+    border: 2px solid transparent;
+    border-radius: 20px;
+    padding: 1.5rem 1rem;
+    width: 140px;
+    height: 180px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: transform 0.2s ease, border 0.2s ease;
+}
+
+.mode-card:hover {
+    transform: scale(1.05);
+}
+
+.mode-card h2 {
+    margin: 15px 0 0 0;
+    font-size: 1.2rem;
+    color: #1E1E1E; 
+    font-weight: 900;
+}
+
+.mode-card p {
+    margin: 4px 0 0 0;
+    font-size: 0.75rem;
+    color: #4A4A4A;
+    text-align: center;
+    font-weight: 600;
+}
+
+/* --- ICONE MODALITÀ --- */
+
+/* NORMAL */
+.normal-icon-css {
+    position: relative;
+    width: 75px; 
+    height: 50px;
+}
+
+.normal-icon-css .token {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    position: absolute;
+    top: 0; 
+    box-shadow: 2px 4px 6px rgba(0,0,0,0.3); 
+}
+
+.normal-icon-css .token-yellow {
+    background-color: #F6D04C;
+    left: 0;
+    z-index: 2; 
+}
+
+.normal-icon-css .token-red {
+    background-color: #E23D3D;
+    right: 0;
+    z-index: 1; 
+}
+
+/* BLIND */
+.blind-icon-css {
+    position: relative;
+    width: 80px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Forma dell'occhio */
+.css-eye {
+    width: 65px;
+    height: 35px;
+    background-color: white;
+    border: 4px solid #1E1E1E; 
+    border-radius: 50%; 
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    overflow: hidden;
+}
+
+/* Iride viola e pupilla nera */
+.css-iris {
+    width: 22px;
+    height: 22px;
+    background-color: #6A5ACD; 
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.css-iris::after {
+    content: '';
+    width: 8px;
+    height: 8px;
+    background-color: #1E1E1E;
+    border-radius: 50%;
+}
+
+/* Barra rossa spessa SENZA pallini bianchi */
+.css-slash {
+    position: absolute;
+    width: 75px;
+    height: 10px; 
+    background-color: #E23D3D; 
+    transform: rotate(-30deg); 
+    border-radius: 10px; 
+    z-index: 3; 
+}
+
+#btn-back {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    width: auto;
+    padding: 10px 20px;
+    z-index: 100; /* Si assicura che stia sempre sopra le altre schermate */
 }

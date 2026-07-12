@@ -3,15 +3,20 @@ import { GameEngine } from './core/GameEngine';
 import { Bot } from './core/Bot'; 
 
 document.addEventListener('DOMContentLoaded', () => {
-    
-    const splashScreen = document.getElementById('splash-screen');
+    let isBlindModeActive = true; 
+
     const mainMenu = document.getElementById('main-menu');
+    const modeSelectionScreen = document.getElementById('mode-selection'); // NUOVO
     const configScreen = document.getElementById('config-screen');
     const gameScreen = document.getElementById('game-screen'); 
 
     const btnNewGame = document.getElementById('btn-new-game');
     const configBtns = document.querySelectorAll('.config-btn');
-    const btnPlay = document.getElementById('btn-play'); 
+    const btnPlay = document.getElementById('btn-play'); // Questo è il Play del Main Menu
+    const btnModeNormal = document.getElementById('btn-mode-normal'); // NUOVO
+    const btnModeBlind = document.getElementById('btn-mode-blind');   // NUOVO
+    const btnBack = document.getElementById('btn-back');
+    let currentScreen = 'main-menu';
 
     const colButtons = document.querySelectorAll('.col-btn');
     const hearts = document.querySelectorAll('.heart');
@@ -59,23 +64,40 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    setTimeout(() => {
-        if (splashScreen && mainMenu) {
-            splashScreen.classList.add('hidden');
-            mainMenu.classList.remove('hidden');
-        }
-    }, 2000);
-
     if (btnNewGame) {
         btnNewGame.addEventListener('click', () => {
-            if (mainMenu && configScreen) {
+            if (mainMenu && modeSelectionScreen) {
                 mainMenu.classList.add('hidden');
-                configScreen.classList.remove('hidden');
-                updateUI();
+                modeSelectionScreen.classList.remove('hidden');
             }
+            currentScreen = 'mode-selection';
+            btnBack?.classList.remove('hidden');
         });
     }
 
+    // Dalla modalità NORMAL si va alle impostazioni
+    btnModeNormal?.addEventListener('click', () => {
+        isBlindModeActive = false;
+        if (modeSelectionScreen && configScreen) {
+            modeSelectionScreen.classList.add('hidden');
+            configScreen.classList.remove('hidden');
+            updateUI();
+        }
+        currentScreen = 'config-screen';
+    });
+
+    // Dalla modalità BLIND si va alle impostazioni
+    btnModeBlind?.addEventListener('click', () => {
+        isBlindModeActive = true;
+        if (modeSelectionScreen && configScreen) {
+            modeSelectionScreen.classList.add('hidden');
+            configScreen.classList.remove('hidden');
+            updateUI();
+        }
+        currentScreen = 'config-screen';
+    });
+
+    // Aggiornamento impostazioni salvate
     configBtns.forEach(btn => {
         btn.addEventListener('click', (e) => {
             const target = e.target as HTMLButtonElement;
@@ -90,6 +112,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+    // Gestione Timer
     function stopTimer() {
         if (turnTimer !== null) {
             clearInterval(turnTimer);
@@ -127,9 +150,13 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!engine) return;
 
         document.body.style.pointerEvents = 'none';
-        if (gameCenterText) {
-            gameCenterText.style.fontSize = '3rem'; 
-            gameCenterText.innerText = "THINKING...";
+        
+        if (isBlindModeActive) {
+            if (gameCenterText) {
+                gameCenterText.classList.remove('hidden');
+                gameCenterText.style.fontSize = '3rem'; 
+                gameCenterText.innerText = "THINKING...";
+            }
         }
 
         setTimeout(() => {
@@ -142,6 +169,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 250);
     }
 
+    // Inizio partita reale
     if (btnPlay) {
         btnPlay.addEventListener('click', () => {
             if (configScreen && gameScreen) {
@@ -161,23 +189,35 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (btnActionPrimary) btnActionPrimary.classList.remove('hidden');
                 
                 if (revealBoard) revealBoard.classList.add('hidden');
+                
+                // PREPARAZIONE TESTO CENTRALE
                 if (gameCenterText) {
-                    gameCenterText.classList.remove('hidden');
-                    gameCenterText.style.fontSize = '3rem';
                     gameCenterText.style.color = "white"; 
+                    if (isBlindModeActive) {
+                        gameCenterText.classList.remove('hidden');
+                    } else {
+                        gameCenterText.classList.add('hidden'); // In normal mode non serve il testo gigante
+                        // QUI DOVRAI INSERIRE LA LOGICA PER DISEGNARE LA GRIGLIA VUOTA ALL'INIZIO
+                    }
                 }
 
                 if (currentConfig.starter === 'BOT') {
                     triggerBotIfNecessary();
                 } else {
-                    if (gameCenterText) gameCenterText.innerText = "YOUR TURN";
+                    if (isBlindModeActive && gameCenterText) {
+                        gameCenterText.style.fontSize = '3rem';
+                        gameCenterText.innerText = "YOUR TURN";
+                    }
                     document.body.style.pointerEvents = 'auto';
                     startTimer(); 
                 }
             }
+            currentScreen = 'game-screen';
+            btnBack?.classList.add('hidden');
         });
     }
 
+    // Logica di gioco principale
     colButtons.forEach(btn => {
         btn.addEventListener('click', (e) => {
             if (!engine) return; 
@@ -196,6 +236,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const result = engine.playMove(colIndex);
 
+            if (!isBlindModeActive) {
+                // SE NON È BLIND MODE: DISEGNA LA PEDINA IN TEMPO REALE
+                // Dovrai prendere il colore del giocatore corrente e disegnarlo 
+                // nella cella corretta (colIndex, result.row)
+            }
+
             const lostHearts = 3 - result.livesLeft;
             hearts.forEach((h, index) => {
                 if (index < lostHearts) {
@@ -213,6 +259,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (result.status === 'GAME_OVER_LIVES') {
                 if (gameCenterText) {
+                    gameCenterText.classList.remove('hidden');
                     gameCenterText.style.fontSize = '3rem';
                     gameCenterText.innerText = "YOU LOST!";
                     gameCenterText.style.color = '#E23D3D';
@@ -223,6 +270,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (result.status === 'WIN') {
                 if (gameCenterText) {
+                    gameCenterText.classList.remove('hidden');
                     gameCenterText.style.fontSize = '3rem';
                     gameCenterText.innerText = isBot ? "BOT WINS!" : "YOU WIN!";
                     gameCenterText.style.color = isBot ? '#E23D3D' : '#F6D04C'; 
@@ -233,6 +281,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (result.status === 'DRAW') {
                 if (gameCenterText) {
+                    gameCenterText.classList.remove('hidden');
                     gameCenterText.style.fontSize = '3rem';
                     gameCenterText.innerText = "DRAW!";
                 }
@@ -242,7 +291,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (result.status === 'NEXT_TURN') {
                 if (isBot) {
-                    if (gameCenterText) {
+                    if (isBlindModeActive && gameCenterText) {
+                        gameCenterText.classList.remove('hidden');
                         gameCenterText.style.fontSize = '8rem'; 
                         gameCenterText.innerText = (colIndex + 1).toString(); 
                     }
@@ -262,7 +312,10 @@ document.addEventListener('DOMContentLoaded', () => {
         
         if (btnActionPrimary) btnActionPrimary.classList.add('hidden');
         if (btnExitGame) btnExitGame.classList.remove('hidden');
-        if (btnShowGrid) btnShowGrid.classList.remove('hidden');
+        
+        if (isBlindModeActive && btnShowGrid) {
+            btnShowGrid.classList.remove('hidden');
+        }
         
         if (engine) {
             finalGrid = engine.getGridCopy();
@@ -291,6 +344,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (btnActionPrimary) {
         btnActionPrimary.addEventListener('click', () => {
             if (gameCenterText) {
+                gameCenterText.classList.remove('hidden');
                 gameCenterText.style.fontSize = '3rem';
                 gameCenterText.innerText = "YOU LOST!";
                 gameCenterText.style.color = '#E23D3D';
@@ -364,4 +418,20 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
+
+    btnBack?.addEventListener('click', () => {
+        if (currentScreen === 'config-screen') {
+            configScreen?.classList.add('hidden');
+            modeSelectionScreen?.classList.remove('hidden');
+            currentScreen = 'mode-selection';
+        } 
+        
+        else if (currentScreen === 'mode-selection') {
+            modeSelectionScreen?.classList.add('hidden');
+            mainMenu?.classList.remove('hidden');
+            currentScreen = 'main-menu';
+            
+            btnBack?.classList.add('hidden'); 
+        }
+    });
 });
