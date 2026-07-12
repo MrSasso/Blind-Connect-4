@@ -453,3 +453,16 @@ body {
     padding: 10px 20px;
     z-index: 100; /* Si assicura che stia sempre sopra le altre schermate */
 }
+
+@keyframes dropIn {
+    0% { transform: translateY(-300px); opacity: 0; }
+    40% { transform: translateY(0); opacity: 1; }
+    65% { transform: translateY(-15px); }
+    85% { transform: translateY(0); }
+    95% { transform: translateY(-4px); }
+    100% { transform: translateY(0); }
+}
+
+.token-animated {
+    animation: dropIn 0.5s ease-in-out forwards;
+}

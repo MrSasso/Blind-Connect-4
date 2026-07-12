@@ -4,23 +4,36 @@ import { Bot } from './core/Bot';
 
 document.addEventListener('DOMContentLoaded', () => {
     let isBlindModeActive = true; 
+    
+    // SEMAFORO: Impedisce i click accavallati (Race Conditions)
+    let isBoardLocked = false; 
+
+    // Variabili per il testo di Fine Partita
+    let finalVerdictText = "";
+    let finalVerdictColor = "";
+
+    // Variabili di Navigazione
+    let currentScreen = 'main-menu';
+    const btnBack = document.getElementById('btn-back');
 
     const mainMenu = document.getElementById('main-menu');
-    const modeSelectionScreen = document.getElementById('mode-selection'); // NUOVO
+    const modeSelectionScreen = document.getElementById('mode-selection'); 
     const configScreen = document.getElementById('config-screen');
     const gameScreen = document.getElementById('game-screen'); 
 
+    // Pulsanti Menu e Config
     const btnNewGame = document.getElementById('btn-new-game');
     const configBtns = document.querySelectorAll('.config-btn');
-    const btnPlay = document.getElementById('btn-play'); // Questo è il Play del Main Menu
-    const btnModeNormal = document.getElementById('btn-mode-normal'); // NUOVO
-    const btnModeBlind = document.getElementById('btn-mode-blind');   // NUOVO
-    const btnBack = document.getElementById('btn-back');
-    let currentScreen = 'main-menu';
+    const btnPlay = document.getElementById('btn-play'); 
+    const btnModeNormal = document.getElementById('btn-mode-normal'); 
+    const btnModeBlind = document.getElementById('btn-mode-blind');   
 
+    // Elementi Gioco
     const colButtons = document.querySelectorAll('.col-btn');
+    const colButtonsContainer = document.getElementById('col-buttons');
     const hearts = document.querySelectorAll('.heart');
     const gameCenterText = document.getElementById('game-center-text');
+    const endGameMessage = document.getElementById('end-game-message');
     const revealBoard = document.getElementById('reveal-board');
     
     const btnExitGame = document.getElementById('btn-exit-game');
@@ -64,40 +77,52 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // --- LOGICA DEL TASTO BACK ---
+    btnBack?.addEventListener('click', () => {
+        if (currentScreen === 'config-screen') {
+            configScreen?.classList.add('hidden');
+            modeSelectionScreen?.classList.remove('hidden');
+            currentScreen = 'mode-selection';
+        } else if (currentScreen === 'mode-selection') {
+            modeSelectionScreen?.classList.add('hidden');
+            mainMenu?.classList.remove('hidden');
+            currentScreen = 'main-menu';
+            btnBack?.classList.add('hidden'); 
+        }
+    });
+
+    // --- LOGICA MENU ---
     if (btnNewGame) {
         btnNewGame.addEventListener('click', () => {
             if (mainMenu && modeSelectionScreen) {
                 mainMenu.classList.add('hidden');
                 modeSelectionScreen.classList.remove('hidden');
+                currentScreen = 'mode-selection';
+                btnBack?.classList.remove('hidden');
             }
-            currentScreen = 'mode-selection';
-            btnBack?.classList.remove('hidden');
         });
     }
 
-    // Dalla modalità NORMAL si va alle impostazioni
     btnModeNormal?.addEventListener('click', () => {
         isBlindModeActive = false;
         if (modeSelectionScreen && configScreen) {
             modeSelectionScreen.classList.add('hidden');
             configScreen.classList.remove('hidden');
+            currentScreen = 'config-screen';
             updateUI();
         }
-        currentScreen = 'config-screen';
     });
 
-    // Dalla modalità BLIND si va alle impostazioni
     btnModeBlind?.addEventListener('click', () => {
         isBlindModeActive = true;
         if (modeSelectionScreen && configScreen) {
             modeSelectionScreen.classList.add('hidden');
             configScreen.classList.remove('hidden');
+            currentScreen = 'config-screen';
             updateUI();
         }
-        currentScreen = 'config-screen';
     });
 
-    // Aggiornamento impostazioni salvate
     configBtns.forEach(btn => {
         btn.addEventListener('click', (e) => {
             const target = e.target as HTMLButtonElement;
@@ -112,7 +137,31 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Gestione Timer
+    // --- DISPLAY FINE PARTITA INTELLIGENTE ---
+    function handleGameOverDisplay(text: string, color: string) {
+        finalVerdictText = text;
+        finalVerdictColor = color;
+        
+        if (colButtonsContainer) colButtonsContainer.classList.add('hidden'); 
+
+        if (isBlindModeActive) {
+            if (gameCenterText) {
+                gameCenterText.classList.remove('hidden');
+                gameCenterText.style.fontSize = '3rem';
+                gameCenterText.innerText = text;
+                gameCenterText.style.color = color;
+            }
+        } else {
+            if (gameCenterText) gameCenterText.classList.add('hidden');
+            if (endGameMessage) {
+                endGameMessage.classList.remove('hidden');
+                endGameMessage.innerText = text;
+                endGameMessage.style.color = color;
+            }
+        }
+    }
+
+    // --- GESTIONE TIMER E BOT ---
     function stopTimer() {
         if (turnTimer !== null) {
             clearInterval(turnTimer);
@@ -126,7 +175,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (timerDisplay) timerDisplay.classList.add('hidden');
             return;
         }
-        
         if (timerDisplay) timerDisplay.classList.remove('hidden');
         let timeLeft = 15;
         if (timeLeftEl) timeLeftEl.innerText = timeLeft.toString();
@@ -134,193 +182,225 @@ document.addEventListener('DOMContentLoaded', () => {
         turnTimer = window.setInterval(() => {
             timeLeft--;
             if (timeLeftEl) timeLeftEl.innerText = timeLeft.toString();
-
             if (timeLeft <= 0) {
-                if (gameCenterText) {
-                    gameCenterText.style.fontSize = '3rem';
-                    gameCenterText.innerText = "TIME OUT!";
-                    gameCenterText.style.color = '#E23D3D'; 
-                }
+                handleGameOverDisplay("TIME OUT!", '#E23D3D');
                 endGameUI();
             }
         }, 1000);
     }
 
-    function triggerBotIfNecessary() {
+    function triggerBotIfNecessary(isFirstMove: boolean = false) {
         if (!engine) return;
-
-        document.body.style.pointerEvents = 'none';
         
-        if (isBlindModeActive) {
-            if (gameCenterText) {
-                gameCenterText.classList.remove('hidden');
-                gameCenterText.style.fontSize = '3rem'; 
-                gameCenterText.innerText = "THINKING...";
-            }
+        isBoardLocked = true; // LUCCHETTO ATTIVO: L'utente non può cliccare
+        
+        if (isBlindModeActive && gameCenterText) {
+            gameCenterText.classList.remove('hidden');
+            gameCenterText.style.fontSize = '3rem'; 
+            gameCenterText.innerText = "THINKING...";
         }
+
+        // Se è la prima mossa aspetta solo 250ms, altrimenti i canonici 1500ms
+        const waitTime = isFirstMove ? 250 : 1100;
 
         setTimeout(() => {
             if (!engine) return; 
             const botChoice = bot.getMove(engine.getGridCopy(), currentConfig.difficulty);
             const targetButton = document.querySelector(`.col-btn[data-col="${botChoice}"]`) as HTMLButtonElement;
             if (targetButton) {
+                isBoardLocked = false; 
                 targetButton.click();
             }
-        }, 250);
+        }, waitTime); 
     }
 
-    // Inizio partita reale
+    // --- INIZIO PARTITA REALE ---
     if (btnPlay) {
         btnPlay.addEventListener('click', () => {
             if (configScreen && gameScreen) {
                 configScreen.classList.add('hidden');
                 gameScreen.classList.remove('hidden');
+                currentScreen = 'game-screen';
+                btnBack?.classList.add('hidden');
                 
                 engine = new GameEngine();
-                
-                // RESET VARIABILI
                 finalGrid = null;
                 finalWinningCells = [];
                 finalLastMove = null;
                 
+                // Reset della UI
                 hearts.forEach(h => h.classList.remove('lost'));
                 if (btnExitGame) btnExitGame.classList.add('hidden');
                 if (btnShowGrid) btnShowGrid.classList.add('hidden');
                 if (btnActionPrimary) btnActionPrimary.classList.remove('hidden');
-                
-                if (revealBoard) revealBoard.classList.add('hidden');
-                
-                // PREPARAZIONE TESTO CENTRALE
-                if (gameCenterText) {
-                    gameCenterText.style.color = "white"; 
-                    if (isBlindModeActive) {
-                        gameCenterText.classList.remove('hidden');
-                    } else {
-                        gameCenterText.classList.add('hidden'); // In normal mode non serve il testo gigante
-                        // QUI DOVRAI INSERIRE LA LOGICA PER DISEGNARE LA GRIGLIA VUOTA ALL'INIZIO
+                if (colButtonsContainer) colButtonsContainer.classList.remove('hidden');
+                if (endGameMessage) endGameMessage.classList.add('hidden');
+                if (gameCenterText) gameCenterText.style.color = "white"; 
+
+                // SETUP VISIVO IN BASE ALLA MODALITÀ
+                if (isBlindModeActive) {
+                    if (gameCenterText) gameCenterText.classList.remove('hidden');
+                    if (revealBoard) revealBoard.classList.add('hidden');
+                } else {
+                    if (gameCenterText) gameCenterText.classList.add('hidden'); 
+                    if (revealBoard) {
+                        revealBoard.classList.remove('hidden');
+                        revealBoard.innerHTML = '';
+                        for (let r = 5; r >= 0; r--) {
+                            for (let c = 0; c < 7; c++) {
+                                const cell = document.createElement('div');
+                                cell.classList.add('board-cell');
+                                cell.style.gridColumn = (c + 1).toString();
+                                cell.style.gridRow = (6 - r).toString();
+                                revealBoard.appendChild(cell);
+                            }
+                        }
                     }
                 }
 
+                isBoardLocked = false; // Partita nuova, griglia sbloccata
+                
                 if (currentConfig.starter === 'BOT') {
-                    triggerBotIfNecessary();
+                    // PASSANDO 'TRUE' IL BOT FARÀ LA MOSSA QUASI ISTANTANEAMENTE
+                    triggerBotIfNecessary(true); 
                 } else {
                     if (isBlindModeActive && gameCenterText) {
                         gameCenterText.style.fontSize = '3rem';
                         gameCenterText.innerText = "YOUR TURN";
                     }
-                    document.body.style.pointerEvents = 'auto';
                     startTimer(); 
                 }
             }
-            currentScreen = 'game-screen';
-            btnBack?.classList.add('hidden');
         });
     }
 
-    // Logica di gioco principale
+    // --- LOGICA TURNI E MOSSE ---
     colButtons.forEach(btn => {
         btn.addEventListener('click', (e) => {
-            if (!engine) return; 
+            // SE IL SEMAFORO È ROSSO, IGNORA IL CLICK
+            if (isBoardLocked || !engine) return; 
 
             const playerMakingMove = engine.currentPlayer;
             const isBot = (currentConfig.starter === 'YOU' && playerMakingMove === 2) || 
                           (currentConfig.starter === 'BOT' && playerMakingMove === 1);
 
             if (!isBot) {
+                // IL GIOCATORE UMANO HA CLICCATO: Blocca subito la griglia e ferma il timer
+                isBoardLocked = true; 
                 stopTimer(); 
-                document.body.style.pointerEvents = 'none'; 
             }
 
             const target = e.target as HTMLButtonElement;
             const colIndex = parseInt(target.getAttribute('data-col') || '0', 10);
-
             const result = engine.playMove(colIndex);
 
-            if (!isBlindModeActive) {
-                // SE NON È BLIND MODE: DISEGNA LA PEDINA IN TEMPO REALE
-                // Dovrai prendere il colore del giocatore corrente e disegnarlo 
-                // nella cella corretta (colIndex, result.row)
+            // ANIMAZIONE PEDINA (Normal Mode)
+            if (!isBlindModeActive && result.status !== 'ERROR_FULL' && revealBoard) {
+                const currentGrid = engine.getGridCopy();
+                const row = currentGrid[colIndex].length - 1; 
+                
+                const token = document.createElement('div');
+                token.classList.add('board-cell', 'token-animated');
+                token.style.gridColumn = (colIndex + 1).toString();
+                token.style.gridRow = (6 - row).toString();
+
+                const myPlayerId = currentConfig.starter === 'YOU' ? 1 : 2;
+                const isMe = (playerMakingMove === myPlayerId);
+                const amIYellow = (currentConfig.color === 'YELLOW');
+                
+                if ((isMe && amIYellow) || (!isMe && !amIYellow)) {
+                    token.classList.add('token-yellow');
+                } else {
+                    token.classList.add('token-red');
+                }
+                revealBoard.appendChild(token);
             }
 
             const lostHearts = 3 - result.livesLeft;
             hearts.forEach((h, index) => {
-                if (index < lostHearts) {
-                    h.classList.add('lost');
-                }
+                if (index < lostHearts) h.classList.add('lost');
             });
 
             if (result.status === 'ERROR_FULL') {
                 if (!isBot) {
+                    isBoardLocked = false; // Colonna piena, rida' il permesso di cliccare altrove
                     startTimer(); 
-                    document.body.style.pointerEvents = 'auto';
                 }
                 return;
             }
 
-            if (result.status === 'GAME_OVER_LIVES') {
-                if (gameCenterText) {
-                    gameCenterText.classList.remove('hidden');
-                    gameCenterText.style.fontSize = '3rem';
-                    gameCenterText.innerText = "YOU LOST!";
-                    gameCenterText.style.color = '#E23D3D';
-                }
-                endGameUI();
-                return;
-            }
-
-            if (result.status === 'WIN') {
-                if (gameCenterText) {
-                    gameCenterText.classList.remove('hidden');
-                    gameCenterText.style.fontSize = '3rem';
-                    gameCenterText.innerText = isBot ? "BOT WINS!" : "YOU WIN!";
-                    gameCenterText.style.color = isBot ? '#E23D3D' : '#F6D04C'; 
+            // FINE GIOCO
+            if (result.status === 'GAME_OVER_LIVES' || result.status === 'WIN' || result.status === 'DRAW') {
+                if (result.status === 'GAME_OVER_LIVES') {
+                    handleGameOverDisplay("YOU LOST!", '#E23D3D');
+                } else if (result.status === 'WIN') {
+                    handleGameOverDisplay(isBot ? "BOT WINS!" : "YOU WIN!", isBot ? '#E23D3D' : '#F6D04C');
+                } else {
+                    handleGameOverDisplay("DRAW!", 'white');
                 }
                 endGameUI();
                 return;
             }
 
-            if (result.status === 'DRAW') {
-                if (gameCenterText) {
-                    gameCenterText.classList.remove('hidden');
-                    gameCenterText.style.fontSize = '3rem';
-                    gameCenterText.innerText = "DRAW!";
-                }
-                endGameUI();
-                return;
-            }
-
+            // PROSSIMO TURNO
             if (result.status === 'NEXT_TURN') {
                 if (isBot) {
+                    // IL BOT HA FINITO, TOCCA A TE
                     if (isBlindModeActive && gameCenterText) {
                         gameCenterText.classList.remove('hidden');
                         gameCenterText.style.fontSize = '8rem'; 
                         gameCenterText.innerText = (colIndex + 1).toString(); 
                     }
-                    
-                    document.body.style.pointerEvents = 'auto';
+                    isBoardLocked = false; // SBLOCCA LA TUA MOSSA
                     startTimer(); 
                 } else {
+                    // TU HAI FINITO, TOCCA AL BOT
                     triggerBotIfNecessary();
                 }
             }
         });
     });
 
+    function highlightWinInNormalMode() {
+        if (!finalGrid || !revealBoard || finalWinningCells.length === 0) return;
+        
+        if (finalLastMove) {
+            const beam = document.createElement('div');
+            beam.classList.add('last-move-beam');
+            beam.style.gridColumn = (finalLastMove.col + 1).toString();
+            beam.style.gridRow = '1 / span 6';
+            revealBoard.appendChild(beam);
+        }
+
+        const children = revealBoard.children;
+        finalWinningCells.forEach(w => {
+            for(let i=0; i<children.length; i++) {
+                const child = children[i] as HTMLElement;
+                if(child.style.gridColumn === (w.c + 1).toString() && child.style.gridRow === (6 - w.r).toString()) {
+                    if (child.classList.contains('token-yellow') || child.classList.contains('token-red')) {
+                        child.classList.add('winning-token-outline');
+                    }
+                }
+            }
+        });
+    }
+
     function endGameUI() {
         stopTimer(); 
-        document.body.style.pointerEvents = 'auto';
         
         if (btnActionPrimary) btnActionPrimary.classList.add('hidden');
         if (btnExitGame) btnExitGame.classList.remove('hidden');
-        
-        if (isBlindModeActive && btnShowGrid) {
-            btnShowGrid.classList.remove('hidden');
-        }
         
         if (engine) {
             finalGrid = engine.getGridCopy();
             finalWinningCells = [...engine.winningCells];
             finalLastMove = engine.lastMove ? { ...engine.lastMove } : null;
+        }
+
+        if (isBlindModeActive && btnShowGrid) {
+            btnShowGrid.classList.remove('hidden');
+        } else if (!isBlindModeActive) {
+            highlightWinInNormalMode(); 
         }
         
         engine = null as any;
@@ -328,7 +408,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function exitToMenu() {
         stopTimer(); 
-        document.body.style.pointerEvents = 'auto';
         engine = null as any;
         finalGrid = null;
         finalWinningCells = [];
@@ -337,32 +416,36 @@ document.addEventListener('DOMContentLoaded', () => {
         if (gameScreen && mainMenu) {
             gameScreen.classList.add('hidden');
             mainMenu.classList.remove('hidden');
+            currentScreen = 'main-menu';
         }
     }
 
     if (btnExitGame) btnExitGame.addEventListener('click', exitToMenu);
+    
     if (btnActionPrimary) {
         btnActionPrimary.addEventListener('click', () => {
-            if (gameCenterText) {
-                gameCenterText.classList.remove('hidden');
-                gameCenterText.style.fontSize = '3rem';
-                gameCenterText.innerText = "YOU LOST!";
-                gameCenterText.style.color = '#E23D3D';
-            }
+            handleGameOverDisplay("SURRENDERED!", '#E23D3D');
             endGameUI();
         });
     }
-
+    
     const iconBtn = document.querySelector('.icon-btn');
     if (iconBtn) iconBtn.addEventListener('click', exitToMenu);
 
+    // --- REVEAL DELLA BLIND MODE --- 
     if (btnShowGrid) {
         btnShowGrid.addEventListener('click', () => {
             if (!finalGrid || !revealBoard || !gameCenterText) return;
             
             gameCenterText.classList.add('hidden');
-            btnShowGrid.classList.add('hidden');
             
+            if (endGameMessage) {
+                endGameMessage.classList.remove('hidden');
+                endGameMessage.innerText = finalVerdictText;
+                endGameMessage.style.color = finalVerdictColor;
+            }
+
+            btnShowGrid.classList.add('hidden');
             revealBoard.classList.remove('hidden');
             revealBoard.innerHTML = ''; 
 
@@ -376,7 +459,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const myPlayerId = currentConfig.starter === 'YOU' ? 1 : 2;
             const botPlayerId = currentConfig.starter === 'YOU' ? 2 : 1;
-            
             const myColorClass = currentConfig.color === 'YELLOW' ? 'token-yellow' : 'token-red';
             const botColorClass = currentConfig.color === 'YELLOW' ? 'token-red' : 'token-yellow';
 
@@ -384,54 +466,25 @@ document.addEventListener('DOMContentLoaded', () => {
                 for (let c = 0; c < 7; c++) {
                     const cell = document.createElement('div');
                     cell.classList.add('board-cell'); 
-
                     cell.style.gridColumn = (c + 1).toString();
                     cell.style.gridRow = (6 - r).toString();
                     
                     if (finalGrid[c] && finalGrid[c].length > r) {
                         const tokenOwner = finalGrid[c][r];
-                        if (tokenOwner === myPlayerId) {
-                            cell.classList.add(myColorClass);
-                        } else if (tokenOwner === botPlayerId) {
-                            cell.classList.add(botColorClass);
-                        }
+                        if (tokenOwner === myPlayerId) cell.classList.add(myColorClass);
+                        else if (tokenOwner === botPlayerId) cell.classList.add(botColorClass);
                     }
 
                     const isWinCell = finalWinningCells.some(w => w.c === c && w.r === r);
-                    if (isWinCell) {
-                        cell.classList.add('winning-token-outline');
-                    }
+                    if (isWinCell) cell.classList.add('winning-token-outline');
 
-                    if (finalLastMove && finalLastMove.col === c) {
-                        if (r === 0) {
-                            cell.classList.add('last-move-arrow');
-                            if (finalLastMove.player === myPlayerId) {
-                                cell.classList.add(currentConfig.color === 'YELLOW' ? 'arrow-yellow' : 'arrow-red');
-                            } else {
-                                cell.classList.add(currentConfig.color === 'YELLOW' ? 'arrow-red' : 'arrow-yellow');
-                            }
-                        }
+                    if (finalLastMove && finalLastMove.col === c && r === 0) {
+                        cell.classList.add('last-move-arrow');
+                        cell.classList.add(finalLastMove.player === myPlayerId ? (currentConfig.color === 'YELLOW' ? 'arrow-yellow' : 'arrow-red') : (currentConfig.color === 'YELLOW' ? 'arrow-red' : 'arrow-yellow'));
                     }
-                    
                     revealBoard.appendChild(cell);
                 }
             }
         });
     }
-
-    btnBack?.addEventListener('click', () => {
-        if (currentScreen === 'config-screen') {
-            configScreen?.classList.add('hidden');
-            modeSelectionScreen?.classList.remove('hidden');
-            currentScreen = 'mode-selection';
-        } 
-        
-        else if (currentScreen === 'mode-selection') {
-            modeSelectionScreen?.classList.add('hidden');
-            mainMenu?.classList.remove('hidden');
-            currentScreen = 'main-menu';
-            
-            btnBack?.classList.add('hidden'); 
-        }
-    });
 });
