@@ -451,7 +451,7 @@ body {
     left: 20px;
     width: auto;
     padding: 10px 20px;
-    z-index: 100; /* Si assicura che stia sempre sopra le altre schermate */
+    z-index: 100;
 }
 
 @keyframes dropIn {

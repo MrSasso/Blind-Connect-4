@@ -4,61 +4,46 @@ import { Bot } from './core/Bot';
 
 document.addEventListener('DOMContentLoaded', () => {
     let isBlindModeActive = true; 
-    
-    // SEMAFORO: Impedisce i click accavallati (Race Conditions)
     let isBoardLocked = false; 
-
-    // Variabili per il testo di Fine Partita
     let finalVerdictText = "";
     let finalVerdictColor = "";
-
-    // Variabili di Navigazione
     let currentScreen = 'main-menu';
-    const btnBack = document.getElementById('btn-back');
+    let engine: GameEngine;
+    let turnTimer: number | null = null;
+    let finalGrid: number[][] | null = null;
+    let finalWinningCells: {c: number, r: number}[] = [];
+    let finalLastMove: {col: number, player: number} | null = null;
 
+    const btnBack = document.getElementById('btn-back');
     const mainMenu = document.getElementById('main-menu');
     const modeSelectionScreen = document.getElementById('mode-selection'); 
     const configScreen = document.getElementById('config-screen');
     const gameScreen = document.getElementById('game-screen'); 
-
-    // Pulsanti Menu e Config
     const btnNewGame = document.getElementById('btn-new-game');
     const configBtns = document.querySelectorAll('.config-btn');
     const btnPlay = document.getElementById('btn-play'); 
     const btnModeNormal = document.getElementById('btn-mode-normal'); 
     const btnModeBlind = document.getElementById('btn-mode-blind');   
-
-    // Elementi Gioco
     const colButtons = document.querySelectorAll('.col-btn');
     const colButtonsContainer = document.getElementById('col-buttons');
     const hearts = document.querySelectorAll('.heart');
     const gameCenterText = document.getElementById('game-center-text');
     const endGameMessage = document.getElementById('end-game-message');
     const revealBoard = document.getElementById('reveal-board');
-    
     const btnExitGame = document.getElementById('btn-exit-game');
     const btnShowGrid = document.getElementById('btn-show-grid');
     const btnActionPrimary = document.getElementById('btn-action-primary');
-
     const timerDisplay = document.querySelector('.timer-display');
     const timeLeftEl = document.getElementById('time-left');
-
-    let engine: GameEngine;
     const bot = new Bot();
-    let turnTimer: number | null = null;
-    
-    let finalGrid: number[][] | null = null;
-    let finalWinningCells: {c: number, r: number}[] = [];
-    let finalLastMove: {col: number, player: number} | null = null;
-
     const defaultConfig = {
         difficulty: 'EASY',
         starter: 'YOU',
         color: 'YELLOW',
         time: 'NO TIME'
     };
-
     const savedConfig = localStorage.getItem('blind_c4_settings');
+
     let currentConfig = savedConfig ? JSON.parse(savedConfig) : defaultConfig;
 
     if (!savedConfig) {
@@ -258,10 +243,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 }
 
-                isBoardLocked = false; // Partita nuova, griglia sbloccata
+                isBoardLocked = false;
                 
                 if (currentConfig.starter === 'BOT') {
-                    // PASSANDO 'TRUE' IL BOT FARÀ LA MOSSA QUASI ISTANTANEAMENTE
                     triggerBotIfNecessary(true); 
                 } else {
                     if (isBlindModeActive && gameCenterText) {
