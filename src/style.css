@@ -466,3 +466,234 @@ body {
 .token-animated {
     animation: dropIn 0.5s ease-in-out forwards;
 }
+
+.icon-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 5px;
+}
+
+.lives-display {
+    display: flex;
+    align-items: center;
+    gap: 15px; /* Aggiunge spazio uniforme tra i cuori */
+}
+
+
+/* --- INGRANAGGIO IMPOSTAZIONI (100% CSS) --- */
+.css-gear {
+    position: relative;
+    width: 18px;
+    height: 18px;
+    border: 4px solid #8c96a3; /* Colore originale dell'icona */
+    border-radius: 50%;
+    box-sizing: border-box;
+    background: #31363F; /* Si fonde con lo sfondo del body */
+    z-index: 1;
+    transition: transform 0.4s ease; /* Effetto rotazione fluido */
+}
+
+/* I due "bracci" incrociati che formano i denti dell'ingranaggio */
+.css-gear::before, .css-gear::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 24px;
+    height: 6px;
+    background: #8c96a3;
+    border-radius: 2px;
+    transform: translate(-50%, -50%);
+    z-index: -1;
+}
+
+.css-gear::after {
+    transform: translate(-50%, -50%) rotate(90deg);
+}
+
+/* Animazione di hover per l'ingranaggio */
+.icon-btn:hover .css-gear {
+    transform: rotate(90deg); 
+}
+
+
+/* --- CRONOMETRO TIMER (100% CSS) --- */
+.css-timer {
+    position: relative;
+    width: 20px;
+    height: 20px;
+    border: 2px solid white;
+    border-radius: 50%;
+    margin-right: 5px;
+}
+
+/* Pulsante superiore del cronometro */
+.css-timer::before {
+    content: '';
+    position: absolute;
+    top: -5px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 6px;
+    height: 3px;
+    background: white;
+    border-radius: 2px;
+}
+
+/* Lancetta interna */
+.css-timer::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 2px;
+    height: 8px;
+    background: white;
+    transform-origin: top center;
+    transform: rotate(-140deg);
+    border-radius: 1px;
+}
+
+
+/* --- CUORE VITE (100% CSS) --- */
+.css-heart {
+    position: relative;
+    width: 16px;
+    height: 16px;
+    background-color: #E23D3D;
+    /* Un quadrato ruotato di 45 gradi... */
+    transform: rotate(-45deg); 
+    margin-top: 5px; /* Bilancia l'altezza extra data dagli pseudo-elementi */
+}
+
+/* ...con due cerchi posizionati sopra e a destra per formare le curve */
+.css-heart::before,
+.css-heart::after {
+    content: "";
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    background-color: inherit; 
+    border-radius: 50%;
+}
+
+.css-heart::before {
+    top: -8px;
+    left: 0;
+}
+
+.css-heart::after {
+    top: 0;
+    left: 8px;
+}
+
+.css-gear {
+    position: relative;
+    width: 20px;
+    height: 20px;
+    /* Primo cerchio (esterno) */
+    border: 2.5px solid #8c96a3; 
+    border-radius: 50%;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.4s ease;
+}
+
+/* Secondo cerchio concentrico (interno) */
+.css-gear::after {
+    content: '';
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    border: 2px solid #8c96a3;
+    border-radius: 50%;
+    box-sizing: border-box;
+}
+
+/* I 6 quadrati disposti a esagono (denti) */
+.css-gear::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 4px;
+    height: 4px;
+    transform: translate(-50%, -50%);
+    background: transparent; /* L'elemento base è invisibile... */
+    
+    /* ...ma proietta 6 ombre quadrate esatte calcolate su un raggio di 11px */
+    box-shadow: 
+         0 -11px 0 #8c96a3,        /* Alto */
+         0  11px 0 #8c96a3,        /* Basso */
+         9.5px -5.5px 0 #8c96a3,   /* Alto-Destra */
+        -9.5px  5.5px 0 #8c96a3,   /* Basso-Sinistra */
+         9.5px  5.5px 0 #8c96a3,   /* Basso-Destra */
+        -9.5px -5.5px 0 #8c96a3;   /* Alto-Sinistra */
+        
+    z-index: -1; /* Spinge i quadrati leggermente dietro al bordo del cerchio */
+}
+
+/* Animazione di hover */
+.icon-btn:hover .css-gear {
+    /* Ruotando di 60 gradi, la rotella scatterà esattamente della distanza di un dente (360/6 = 60) */
+    transform: rotate(60deg); 
+}
+
+.css-gear {
+    position: relative;
+    width: 20px;
+    height: 20px;
+    /* Cerchio grande PIENO */
+    background-color: #8c96a3; 
+    border-radius: 50%;
+    transition: transform 0.4s ease;
+}
+
+/* Cerchio piccolo (scuro e centrato) */
+.css-gear::after {
+    content: '';
+    position: absolute;
+    /* Centramento perfetto assoluto */
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 8px;
+    height: 8px;
+    /* Colore scuro (usa il colore di sfondo del body per l'effetto "buco") */
+    background-color: #31363F; 
+    border-radius: 50%;
+}
+
+/* I 6 quadrati disposti a esagono (denti) */
+.css-gear::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 5px; /* Leggermente più larghi per fondersi bene col cerchio pieno */
+    height: 5px;
+    transform: translate(-50%, -50%);
+    background: transparent; 
+    
+    /* Le 6 ombre proiettate a raggio */
+    box-shadow: 
+         0 -11px 0 #8c96a3,        /* Alto */
+         0  11px 0 #8c96a3,        /* Basso */
+         9.5px -5.5px 0 #8c96a3,   /* Alto-Destra */
+        -9.5px  5.5px 0 #8c96a3,   /* Basso-Sinistra */
+         9.5px  5.5px 0 #8c96a3,   /* Basso-Destra */
+        -9.5px -5.5px 0 #8c96a3;   /* Alto-Sinistra */
+        
+    z-index: -1; 
+}
+
+/* Animazione di hover */
+.icon-btn:hover .css-gear {
+    transform: rotate(60deg); 
+}

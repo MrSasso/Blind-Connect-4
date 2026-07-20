@@ -102,17 +102,19 @@
       <div id="game-screen" class="screen hidden">
         
         <div class="top-bar">
-          <button class="icon-btn">⚙️</button>
+          <button class="icon-btn" aria-label="Settings">
+            <div class="css-gear"></div>
+          </button>
           
           <div class="timer-display">
-            <span class="timer-icon">⏱️</span>
+            <div class="css-timer"></div>
             <span id="time-left" class="timer-text">15</span>
           </div>
           
           <div class="lives-display" id="lives-container">
-            <span class="heart">❤️</span>
-            <span class="heart">❤️</span>
-            <span class="heart">❤️</span>
+            <div class="heart css-heart"></div>
+            <div class="heart css-heart"></div>
+            <div class="heart css-heart"></div>
           </div>
         </div>
 
