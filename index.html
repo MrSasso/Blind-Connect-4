@@ -11,14 +11,50 @@
 
       <button id="btn-back" class="btn-transparent hidden">BACK</button>
 
+      <!-- MAIN MENU -->
       <div id="main-menu" class="screen">
         <h1 class="title-red">BLIND</h1>
         <h2 class="title-yellow">CONNECT 4</h2>
         
         <div class="menu-buttons">
-          <button id="btn-new-game" class="btn-blue">NEW GAME</button>
-          <button id="btn-load-game" class="btn-blue">LOAD GAME</button>
+          <button id="btn-local-play" class="btn-blue">LOCAL PLAY</button>
+          <button id="btn-online-match" class="btn-blue">ONLINE MATCH</button>
           <button id="btn-settings" class="btn-blue">SETTINGS</button>
+        </div>
+      </div>
+
+      <!-- LOCAL OPPONENT SELECTION -->
+      <div id="local-opponent" class="screen hidden">
+        <h1 class="mode-title">
+          <span class="text-red">LOCAL</span><br>
+          <span class="text-yellow">PLAY</span>
+        </h1>
+        
+        <div class="menu-buttons" style="margin-top: 30px;">
+          <button id="btn-vs-bot" class="btn-blue">1 VS BOT</button>
+          <button id="btn-vs-friend" class="btn-blue">PASS & PLAY</button>
+        </div>
+      </div>
+
+      <!-- SCHERMATA MULTIPLAYER LOBBY -->
+      <div id="multiplayer-lobby" class="screen hidden">
+        <h1 class="mode-title">
+          <span class="text-red">MULTIPLAYER</span>
+        </h1>
+        
+        <div class="menu-buttons" style="margin-top: 30px;">
+          <button id="btn-create-room" class="btn-blue">CREATE ROOM</button>
+          
+          <div style="margin-top: 20px; display: flex; flex-direction: column; gap: 10px;">
+             <input type="text" id="room-code-input" placeholder="Enter Room Code" style="padding: 15px; border-radius: 12px; border: 2px solid #8C939D; background: #31363F; color: white; font-size: 1.2rem; text-align: center; font-family: inherit; font-weight: bold; text-transform: uppercase;">
+             <button id="btn-join-room" class="btn-blue" style="background-color: #F6D04C; color: #1E1E1E;">JOIN ROOM</button>
+          </div>
+        </div>
+
+        <div id="waiting-message" class="hidden" style="margin-top: 20px;">
+           <h2 style="color: #4ade80;">ROOM CREATED!</h2>
+           <p style="font-size: 1.2rem;">Code: <span id="display-room-code" style="color: #F6D04C; font-size: 2rem; display: block;">----</span></p>
+           <p style="font-size: 0.9rem; color: #8C939D;">Waiting for opponent...</p>
         </div>
       </div>
 
@@ -54,6 +90,12 @@
           </button>
           
         </div>
+
+        <!-- Hint per la modalità Mista (Invisibile di default) -->
+        <p id="mixed-mode-hint" class="hidden" style="color: #8C939D; margin-top: 30px; text-align: center; font-size: 0.85rem; max-width: 80%; font-weight: bold;">
+          Want to play <span style="color: white;">MIXED</span> (1 looks, 1 doesn't)?<br>Just choose <span style="color: white;">NORMAL</span> and dictate your moves!
+        </p>
+
       </div>
 
       <!-- CONFIG SCREEN -->
@@ -147,6 +189,7 @@
       </div>
     </div>
 
+    <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
