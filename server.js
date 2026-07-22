@@ -46,7 +46,11 @@ io.on('connection', (socket) => {
 
   socket.on('disconnect', () => {
     console.log('[-] Giocatore disconnesso:', socket.id);
-    // Più avanti gestiremo cosa succede se uno chiude l'app a metà partita
+  });
+
+  socket.on('play_move', (data) => {
+    io.to(data.roomCode).emit('move_played', data.column);
+    console.log(`[!] Mossa nella colonna ${data.column} per la stanza ${data.roomCode}`);
   });
 });
 

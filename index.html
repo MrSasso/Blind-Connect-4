@@ -30,31 +30,66 @@
           <span class="text-yellow">PLAY</span>
         </h1>
         
-        <div class="menu-buttons" style="margin-top: 30px;">
+        <div class="menu-buttons mt-30">
           <button id="btn-vs-bot" class="btn-blue">1 VS BOT</button>
           <button id="btn-vs-friend" class="btn-blue">PASS & PLAY</button>
         </div>
       </div>
 
-      <!-- SCHERMATA MULTIPLAYER LOBBY -->
+      <!-- SCHERMATA MULTIPLAYER LOBBY (AGGIORNATA) -->
       <div id="multiplayer-lobby" class="screen hidden">
         <h1 class="mode-title">
-          <span class="text-red">MULTIPLAYER</span>
+          <span class="text-red">ONLINE</span><br>
+          <span class="text-yellow">MATCH</span>
         </h1>
         
-        <div class="menu-buttons" style="margin-top: 30px;">
-          <button id="btn-create-room" class="btn-blue">CREATE ROOM</button>
+        <div class="menu-buttons mt-30" id="multiplayer-controls">
+          <!-- Bottone Random -->
+          <button id="btn-random-match" class="btn-blue">RANDOM MATCH</button>
           
-          <div style="margin-top: 20px; display: flex; flex-direction: column; gap: 10px;">
-             <input type="text" id="room-code-input" placeholder="Enter Room Code" style="padding: 15px; border-radius: 12px; border: 2px solid #8C939D; background: #31363F; color: white; font-size: 1.2rem; text-align: center; font-family: inherit; font-weight: bold; text-transform: uppercase;">
-             <button id="btn-join-room" class="btn-blue" style="background-color: #F6D04C; color: #1E1E1E;">JOIN ROOM</button>
+          <!-- Divisorio Grafico -->
+          <div class="divider-container mt-20">
+            <span class="divider-line"></span>
+            <span class="divider-text">OR PLAY WITH A FRIEND</span>
+            <span class="divider-line"></span>
           </div>
+
+          <!-- Lista Amici -->
+          <div class="friends-list-container mt-20">
+             <ul id="friends-list" class="friends-list">
+               
+               <!-- Amico 1 -->
+               <li class="friend-item" data-id="user_123">
+                 <div class="friend-avatar bg-red"></div>
+                 <span class="friend-name">GamerPro99</span>
+                 <span class="friend-status status-online"></span>
+               </li>
+               
+               <!-- Amico 2 -->
+               <li class="friend-item" data-id="user_456">
+                 <div class="friend-avatar bg-yellow"></div>
+                 <span class="friend-name">Alice_02</span>
+                 <span class="friend-status status-online"></span>
+               </li>
+               
+               <!-- Amico 3 -->
+               <li class="friend-item" data-id="user_789">
+                 <div class="friend-avatar bg-gray"></div>
+                 <span class="friend-name">BobTheBuilder</span>
+                 <span class="friend-status status-offline"></span>
+               </li>
+
+             </ul>
+          </div>
+          
+          <!-- Bottone Invito (Nascosto finché non si seleziona un amico) -->
+          <button id="btn-invite-friend" class="btn-blue btn-invite hidden mt-20">INVITE SELECTED</button>
         </div>
 
-        <div id="waiting-message" class="hidden" style="margin-top: 20px;">
-           <h2 style="color: #4ade80;">ROOM CREATED!</h2>
-           <p style="font-size: 1.2rem;">Code: <span id="display-room-code" style="color: #F6D04C; font-size: 2rem; display: block;">----</span></p>
-           <p style="font-size: 0.9rem; color: #8C939D;">Waiting for opponent...</p>
+        <!-- Schermata di attesa (usata dopo l'invio dell'invito o in coda random) -->
+        <div id="waiting-message" class="hidden mt-30">
+           <h2 class="text-success">WAITING...</h2>
+           <p class="waiting-subtitle" id="display-wait-text">Waiting for opponent to accept</p>
         </div>
       </div>
 
@@ -66,8 +101,6 @@
         </h1>
         
         <div class="mode-cards-container">
-          
-          <!-- Tasto NORMAL -->
           <button id="btn-mode-normal" class="mode-card">
             <div class="mode-icon normal-icon-css">
               <div class="token token-red"></div>
@@ -77,7 +110,6 @@
             <p>the classic version</p>
           </button>
 
-          <!-- Tasto BLIND -->
           <button id="btn-mode-blind" class="mode-card">
             <div class="mode-icon blind-icon-css">
               <div class="css-eye">
@@ -88,12 +120,10 @@
             <h2>BLIND</h2>
             <p>you won't see the board</p>
           </button>
-          
         </div>
 
-        <!-- Hint per la modalità Mista (Invisibile di default) -->
-        <p id="mixed-mode-hint" class="hidden" style="color: #8C939D; margin-top: 30px; text-align: center; font-size: 0.85rem; max-width: 80%; font-weight: bold;">
-          Want to play <span style="color: white;">MIXED</span> (1 looks, 1 doesn't)?<br>Just choose <span style="color: white;">NORMAL</span> and dictate your moves!
+        <p id="mixed-mode-hint" class="hidden mt-30">
+          Want to play <span class="text-white">MIXED</span> (1 looks, 1 doesn't)?<br>Just choose <span class="text-white">NORMAL</span> and dictate your moves!
         </p>
 
       </div>
@@ -177,7 +207,7 @@
             <button class="col-btn" data-col="6">7</button>
           </div>
           
-          <h2 id="end-game-message" class="hidden" style="font-size: 2.5rem; margin: 0 0 15px 0; text-align: center; text-transform: uppercase;"></h2>
+          <h2 id="end-game-message" class="hidden"></h2>
 
           <div class="action-row">
             <button id="btn-action-primary" class="btn-transparent">REVEAL / SURRENDER</button>
