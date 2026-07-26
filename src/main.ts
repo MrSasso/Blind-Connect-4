@@ -13,6 +13,7 @@ let isBlindModeActive = true;
 let isBoardLocked = false; 
 let isPassAndPlay = false; 
 let isOnlineMatch = false;
+let currentRoomCode = "";
 
 // Nuovo Stato per il multiplayer ad inviti
 let selectedFriendId = "";
@@ -167,6 +168,22 @@ document.addEventListener('DOMContentLoaded', () => {
         eseguiMossa(colIndex);
     });
 
+    socket.on('match_found', (data: { roomCode: string, role: number }) => {
+        currentRoomCode = data.roomCode; 
+        isOnlineMatch = true; 
+        isPassAndPlay = false; 
+        
+        // IL SERVER DECIDE CHI INIZIA E IL COLORE!
+        // Se role === 1 sei tu che inizi ed hai il Giallo. Altrimenti tocca all'altro (OPPONENT).
+        currentConfig.starter = data.role === 1 ? 'YOU' : 'OPPONENT';
+        currentConfig.color = data.role === 1 ? 'YELLOW' : 'RED';
+        
+        switchScreen(multiplayerLobbyScreen, gameScreen, 'game-screen', false);
+        initGame();
+        
+        alert(data.role === 1 ? "MATCH FOUND! You go first (Yellow)" : "MATCH FOUND! Opponent goes first (Red)"); 
+    });
+
 
     // ==========================================
     // 4. GESTIONE MENU E NAVIGAZIONE
@@ -263,7 +280,12 @@ document.addEventListener('DOMContentLoaded', () => {
     // ==========================================
     
     btnRandomMatch?.addEventListener('click', () => {
-        alert("La coda per la ricerca globale sarà sviluppata nel prossimo step backend!");
+        socket.emit('find_random_match'); // Parla col server
+        
+        // Nasconde il menu e mostra la scritta "WAITING..."
+        if (multiplayerControls) multiplayerControls.classList.add('hidden');
+        if (waitingMessage) waitingMessage.classList.remove('hidden');
+        if (displayWaitText) displayWaitText.innerText = "Searching for an opponent...";
     });
 
     // Logica di selezione visiva dell'amico
@@ -418,7 +440,12 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        isBoardLocked = false;
+        if (isOnlineMatch) {
+            const myPlayerId = currentConfig.starter === 'YOU' ? 1 : 2;
+            isBoardLocked = (engine.currentPlayer !== myPlayerId); // Si blocca se non è il mio turno
+        } else {
+            isBoardLocked = false;
+        }
         
         if (!isPassAndPlay && !isOnlineMatch && currentConfig.starter === 'BOT') {
             triggerBotIfNecessary(true); 
@@ -531,7 +558,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     gameCenterText.innerText = `COL ${colIndex + 1}\n${nextPlayerTurn}`; 
                 }
                 
-                isBoardLocked = false;
+                // LOCK DINAMICO AD OGNI TURNO
+                if (isOnlineMatch) {
+                    const myPlayerId = currentConfig.starter === 'YOU' ? 1 : 2;
+                    isBoardLocked = (engine.currentPlayer !== myPlayerId); // Blocca o sblocca in base a chi tocca
+                } else {
+                    isBoardLocked = false;
+                }
+                
                 startTimer();
                 
             } else if (isBot) {
