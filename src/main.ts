@@ -5,7 +5,7 @@ import { Bot } from './core/Bot';
 // ==========================================
 // 1. SETUP MULTIPLAYER (Socket.io) E STATO GLOBALE
 // ==========================================
-const socket = (window as any).io('http://localhost:3000');
+const socket = (window as any).io('https://blind-connect-4.onrender.com');
 (window as any).multiplayerSocket = socket;
 
 let currentScreen = 'main-menu';
