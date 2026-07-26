@@ -590,8 +590,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const colIndex = parseInt(target.getAttribute('data-col') || '0', 10);
 
             if (isOnlineMatch) {
-                // Al momento l'emissione socket è spenta nell'attesa dell'aggiornamento Backend
-                // socket.emit('play_move', { target: selectedFriendId, column: colIndex });
+                // ORA LEGGIAMO currentRoomCode, IL SERVER RICEVE LA MOSSA E TYPESCRIPT È FELICE
+                socket.emit('play_move', { roomCode: currentRoomCode, column: colIndex });
                 isBoardLocked = true; 
             } else {
                 eseguiMossa(colIndex);
