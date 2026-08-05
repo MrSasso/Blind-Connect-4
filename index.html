@@ -44,49 +44,37 @@
         </h1>
         
         <div class="menu-buttons mt-30" id="multiplayer-controls">
-          <!-- Bottone Random -->
           <button id="btn-random-match" class="btn-blue">RANDOM MATCH</button>
           
-          <!-- Divisorio Grafico -->
           <div class="divider-container mt-20">
             <span class="divider-line"></span>
             <span class="divider-text">OR PLAY WITH A FRIEND</span>
             <span class="divider-line"></span>
           </div>
 
-          <!-- Lista Amici -->
           <div class="friends-list-container mt-20">
              <ul id="friends-list" class="friends-list">
-               
-               <!-- Amico 1 -->
                <li class="friend-item" data-id="user_123">
                  <div class="friend-avatar bg-p2"></div>
                  <span class="friend-name">Work</span>
                  <span class="friend-status status-online"></span>
                </li>
-               
-               <!-- Amico 2 -->
                <li class="friend-item" data-id="user_456">
                  <div class="friend-avatar bg-p1"></div>
                  <span class="friend-name">In</span>
                  <span class="friend-status status-online"></span>
                </li>
-               
-               <!-- Amico 3 -->
                <li class="friend-item" data-id="user_789">
                  <div class="friend-avatar bg-gray"></div>
                  <span class="friend-name">Progress</span>
                  <span class="friend-status status-offline"></span>
                </li>
-
              </ul>
           </div>
           
-          <!-- Bottone Invito -->
           <button id="btn-invite-friend" class="btn-blue btn-invite hidden mt-20">INVITE SELECTED</button>
         </div>
 
-        <!-- Schermata di attesa -->
         <div id="waiting-message" class="hidden mt-30">
            <h2 class="text-success">WAITING...</h2>
            <p class="waiting-subtitle" id="display-wait-text">Waiting for opponent to accept</p>
@@ -101,6 +89,7 @@
         </h1>
         
         <div class="mode-cards-container">
+          
           <button id="btn-mode-normal" class="mode-card">
             <div class="mode-icon normal-icon-css">
               <div class="token token-p2"></div>
@@ -120,6 +109,7 @@
             <h2>BLIND</h2>
             <p>you won't see the board</p>
           </button>
+
         </div>
 
         <p id="mixed-mode-hint" class="hidden mt-30">
@@ -130,7 +120,6 @@
 
       <!-- CONFIG SCREEN -->
       <div id="config-screen" class="screen hidden">
-        
         <div class="config-section">
           <h3 class="config-title">DIFFICULTY</h3>
           <div class="button-row">
@@ -169,11 +158,37 @@
         <button id="btn-play" class="btn-blue btn-play">PLAY</button>
       </div>
 
+      <!-- COLOR MODAL (OVERLAY) -->
+      <div id="color-modal" class="modal-overlay hidden">
+        <div class="modal-content">
+          <button id="btn-close-modal" class="btn-close-x">&times;</button>
+          <h2 class="mode-title text-p1" style="margin-bottom: 20px; font-size: 2rem;">COLORS</h2>
+          <div style="display: flex; gap: 20px; width: 100%; justify-content: space-around;">
+              <div style="flex:1; display:flex; flex-direction:column; align-items:center;">
+                  <h3 class="text-p1" style="margin-bottom:15px; font-size:1.1rem;">YOU</h3>
+                  <div id="grid-c1" class="color-grid"></div>
+              </div>
+              <div style="flex:1; display:flex; flex-direction:column; align-items:center;">
+                  <h3 class="text-p2" style="margin-bottom:15px; font-size:1.1rem;">OPPONENT</h3>
+                  <div id="grid-c2" class="color-grid"></div>
+              </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CUSTOM ALERT MODAL (OVERLAY) -->
+      <div id="alert-modal" class="modal-overlay hidden" style="z-index: 2000;">
+        <div class="modal-content" style="max-width: 300px; text-align: center;">
+          <h2 id="alert-title" class="mode-title text-p1" style="font-size: 1.8rem; margin-bottom: 10px;">NOTICE</h2>
+          <p id="alert-message" style="margin-bottom: 25px; font-size: 1rem; font-weight: bold;"></p>
+          <button id="btn-close-alert" class="btn-blue" style="width: 100%;">OK</button>
+        </div>
+      </div>
+
       <!-- GAME SCREEN -->
       <div id="game-screen" class="screen hidden">
         
         <div class="top-bar">
-          <!-- Questa rotellina ora aprirà il modale dei colori -->
           <button class="icon-btn" aria-label="Settings" id="btn-in-game-settings">
             <div class="css-gear"></div>
           </button>
@@ -217,25 +232,6 @@
           
         </div>
       </div>
-
-      <!-- COLOR MODAL (OVERLAY) -->
-      <div id="color-modal" class="modal-overlay hidden">
-        <div class="modal-content">
-          <button id="btn-close-modal" class="btn-close-x">&times;</button>
-          <h2 class="mode-title text-p1" style="margin-bottom: 20px; font-size: 2rem;">COLORS</h2>
-          <div style="display: flex; gap: 20px; width: 100%; justify-content: space-around;">
-              <div style="flex:1; display:flex; flex-direction:column; align-items:center;">
-                  <h3 class="text-p1" style="margin-bottom:15px; font-size:1.1rem;">YOU</h3>
-                  <div id="grid-c1" class="color-grid"></div>
-              </div>
-              <div style="flex:1; display:flex; flex-direction:column; align-items:center;">
-                  <h3 class="text-p2" style="margin-bottom:15px; font-size:1.1rem;">OPPONENT</h3>
-                  <div id="grid-c2" class="color-grid"></div>
-              </div>
-          </div>
-        </div>
-      </div>
-
     </div>
 
     <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>

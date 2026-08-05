@@ -13,6 +13,7 @@ let isBlindModeActive = true;
 let isBoardLocked = false; 
 let isPassAndPlay = false; 
 let isOnlineMatch = false;
+let isRandomMatchQueue = false; 
 let currentRoomCode = "";
 
 let selectedFriendId = "";
@@ -25,7 +26,6 @@ let finalLastMove: {col: number, player: number} | null = null;
 let finalVerdictText = "";
 let finalVerdictColorClass = "";
 
-// Palette di colori disponibili per i giocatori
 const COLOR_PALETTE = ['#F6D04C', '#E23D3D', '#4ade80', '#0ea5e9', '#a855f7', '#f97316', '#ec4899', '#ffffff'];
 
 // ==========================================
@@ -40,17 +40,20 @@ document.addEventListener('DOMContentLoaded', () => {
     const configScreen = document.getElementById('config-screen');
     const gameScreen = document.getElementById('game-screen'); 
 
-    // Referenze Modale Colori (Overlay)
     const colorModal = document.getElementById('color-modal');
     const btnCloseModal = document.getElementById('btn-close-modal');
     const grid1 = document.getElementById('grid-c1');
     const grid2 = document.getElementById('grid-c2');
 
+    const alertModal = document.getElementById('alert-modal');
+    const alertTitle = document.getElementById('alert-title');
+    const alertMessage = document.getElementById('alert-message');
+    const btnCloseAlert = document.getElementById('btn-close-alert');
+
     const btnBack = document.getElementById('btn-back');
     const btnLocalPlay = document.getElementById('btn-local-play');
     const btnOnlineMatch = document.getElementById('btn-online-match');
     
-    // Pulsanti che aprono le Impostazioni/Colori
     const btnSettings = document.getElementById('btn-settings');
     const btnOpenColors = document.getElementById('btn-open-colors');
     const btnInGameSettings = document.getElementById('btn-in-game-settings');
@@ -95,8 +98,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const defaultConfig = {
         difficulty: 'EASY',
         starter: 'YOU',
-        p1Color: '#F6D04C', // Default Giallo
-        p2Color: '#E23D3D', // Default Rosso
+        p1Color: '#F6D04C', 
+        p2Color: '#E23D3D', 
         time: 'NO TIME'
     };
     
@@ -112,14 +115,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
     applyColorsToDOM();
 
-    // --- FUNZIONI MODALE COLORI ---
+    function showCustomAlert(msg: string, title: string = "NOTICE") {
+        if (alertTitle) alertTitle.innerText = title;
+        if (alertMessage) alertMessage.innerText = msg;
+        alertModal?.classList.remove('hidden');
+    }
+
+    btnCloseAlert?.addEventListener('click', () => {
+        alertModal?.classList.add('hidden');
+    });
 
     function renderColorPalette() {
         if (!grid1 || !grid2) return;
         grid1.innerHTML = '';
         grid2.innerHTML = '';
         
-        // Popola la griglia dei colori per i due giocatori
         COLOR_PALETTE.forEach(color => {
             const sw1 = document.createElement('div');
             sw1.className = 'color-swatch' + (currentConfig.p1Color === color ? ' selected' : '');
@@ -128,7 +138,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (currentConfig.p2Color === color) currentConfig.p2Color = currentConfig.p1Color; 
                 currentConfig.p1Color = color;
                 applyColorsToDOM();
-                renderColorPalette(); // Ridisegna per mostrare i bordi bianchi corretti
+                renderColorPalette(); 
             };
             grid1.appendChild(sw1);
             
@@ -146,8 +156,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function applyColorsToDOM() {
-        // Assegna le variabili CSS al root: questo aggiorna all'istante
-        // tutta l'interfaccia, pedine comprese, in tempo reale!
         document.documentElement.style.setProperty('--p1-color', currentConfig.p1Color);
         document.documentElement.style.setProperty('--p2-color', currentConfig.p2Color);
         
@@ -162,12 +170,10 @@ document.addEventListener('DOMContentLoaded', () => {
         colorModal?.classList.remove('hidden');
     }
 
-    // Colleghiamo tutti e 3 i pulsanti di "settings/colori" all'apertura del modale
-    btnSettings?.addEventListener('click', openSettingsModal); // Dal menu principale
-    btnOpenColors?.addEventListener('click', openSettingsModal); // Dalle impostazioni pre-partita
-    btnInGameSettings?.addEventListener('click', openSettingsModal); // La rotellina durante il gioco
+    btnSettings?.addEventListener('click', openSettingsModal); 
+    btnOpenColors?.addEventListener('click', openSettingsModal); 
+    btnInGameSettings?.addEventListener('click', openSettingsModal); 
 
-    // La X rossa chiude il popup e salva i dati
     btnCloseModal?.addEventListener('click', () => {
         colorModal?.classList.add('hidden');
         localStorage.setItem('blind_c4_settings', JSON.stringify(currentConfig));
@@ -187,8 +193,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (isPassAndPlay || isOnlineMatch) {
             difficultySection?.classList.add('hidden'); 
             starterSection?.classList.remove('hidden'); 
-            if (btnStarterYou) btnStarterYou.innerText = 'PLAYER 1';
-            if (btnStarterBot) btnStarterBot.innerText = 'PLAYER 2';
+            if (btnStarterYou) btnStarterYou.innerText = 'YOU'; 
+            if (btnStarterBot) btnStarterBot.innerText = 'OPPONENT'; 
         } else {
             difficultySection?.classList.remove('hidden'); 
             starterSection?.classList.remove('hidden');
@@ -208,28 +214,39 @@ document.addEventListener('DOMContentLoaded', () => {
         
         switchScreen(multiplayerLobbyScreen, gameScreen, 'game-screen', false);
         initGame();
-        alert(msg); 
+        showCustomAlert(msg, "GAME READY!"); 
     });
 
     socket.on('room_error', (err: string) => {
-        alert(err);
+        showCustomAlert(err, "ERROR");
     });
 
     socket.on('move_played', (colIndex: number) => {
         eseguiMossa(colIndex);
     });
 
-    socket.on('match_found', (data: { roomCode: string, role: number }) => {
+    socket.on('match_found', (data: { roomCode: string, role: number, mode?: string }) => {
         currentRoomCode = data.roomCode; 
         isOnlineMatch = true; 
         isPassAndPlay = false; 
         
         currentConfig.starter = data.role === 1 ? 'YOU' : 'OPPONENT';
         
-        switchScreen(multiplayerLobbyScreen, gameScreen, 'game-screen', false);
+        // Se il server ci invia esplicitamente la modalità, la applichiamo, altrimenti manteniamo
+        // quella che l'utente ha appena cliccato (risolve il bug delle partite non cieche)
+        if (data.mode) {
+            isBlindModeActive = (data.mode === 'BLIND');
+        }
+        
+        document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
+        gameScreen?.classList.remove('hidden');
+        currentScreen = 'game-screen';
+        btnBack?.classList.add('hidden');
+
         initGame();
         
-        alert(data.role === 1 ? "MATCH FOUND! You go first" : "MATCH FOUND! Opponent goes first"); 
+        const turnMessage = data.role === 1 ? "You go first!" : "Opponent goes first!";
+        showCustomAlert(turnMessage, "MATCH FOUND!"); 
     });
 
 
@@ -271,18 +288,20 @@ document.addEventListener('DOMContentLoaded', () => {
     btnOnlineMatch?.addEventListener('click', () => {
         isOnlineMatch = true;
         isPassAndPlay = false;
+        isRandomMatchQueue = false;
         
         friendItems.forEach(i => i.classList.remove('selected'));
         selectedFriendId = "";
         btnInviteFriend?.classList.add('hidden');
-        multiplayerControls?.classList.remove('hidden');
-        waitingMessage?.classList.add('hidden');
+        if (multiplayerControls) multiplayerControls.classList.remove('hidden');
+        if (waitingMessage) waitingMessage.classList.add('hidden');
         
         switchScreen(mainMenu, multiplayerLobbyScreen, 'multiplayer-lobby');
     });
 
     btnVsBot?.addEventListener('click', () => {
         isPassAndPlay = false;
+        isRandomMatchQueue = false;
         currentConfig.starter = 'YOU'; 
         if (mixedModeHint) mixedModeHint.classList.add('hidden'); 
         switchScreen(localOpponentScreen, modeSelectionScreen, 'mode-selection');
@@ -290,22 +309,44 @@ document.addEventListener('DOMContentLoaded', () => {
 
     btnVsFriend?.addEventListener('click', () => {
         isPassAndPlay = true;
+        isRandomMatchQueue = false;
         currentConfig.starter = 'YOU'; 
         if (mixedModeHint) mixedModeHint.classList.remove('hidden'); 
         switchScreen(localOpponentScreen, modeSelectionScreen, 'mode-selection');
     });
 
+    // --- SELEZIONE MODALITÀ (Smista tra regole o avvio della coda random) ---
     btnModeNormal?.addEventListener('click', () => {
         isBlindModeActive = false;
-        switchScreen(modeSelectionScreen, configScreen, 'config-screen');
-        updateUI();
+        if (isRandomMatchQueue) {
+            startRandomMatchQueue('NORMAL');
+        } else {
+            if (btnPlay) btnPlay.classList.remove('hidden');
+            switchScreen(modeSelectionScreen, configScreen, 'config-screen');
+            updateUI();
+        }
     });
 
     btnModeBlind?.addEventListener('click', () => {
         isBlindModeActive = true;
-        switchScreen(modeSelectionScreen, configScreen, 'config-screen');
-        updateUI();
+        if (isRandomMatchQueue) {
+            startRandomMatchQueue('BLIND');
+        } else {
+            if (btnPlay) btnPlay.classList.remove('hidden');
+            switchScreen(modeSelectionScreen, configScreen, 'config-screen');
+            updateUI();
+        }
     });
+
+    function startRandomMatchQueue(selectedMode: string) {
+        socket.emit('find_random_match', selectedMode); 
+        
+        if (multiplayerControls) multiplayerControls.classList.add('hidden');
+        if (waitingMessage) waitingMessage.classList.remove('hidden');
+        if (displayWaitText) displayWaitText.innerText = `Searching for ${selectedMode} match...`;
+
+        switchScreen(modeSelectionScreen, multiplayerLobbyScreen, 'multiplayer-lobby', true);
+    }
 
     configBtns.forEach(btn => {
         btn.addEventListener('click', (e) => {
@@ -327,11 +368,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // ==========================================
     
     btnRandomMatch?.addEventListener('click', () => {
-        socket.emit('find_random_match'); 
-        
-        if (multiplayerControls) multiplayerControls.classList.add('hidden');
-        if (waitingMessage) waitingMessage.classList.remove('hidden');
-        if (displayWaitText) displayWaitText.innerText = "Searching for an opponent...";
+        isRandomMatchQueue = true;
+        if (mixedModeHint) mixedModeHint.classList.add('hidden');
+        switchScreen(multiplayerLobbyScreen, modeSelectionScreen, 'mode-selection');
     });
 
     friendItems.forEach(item => {
@@ -344,7 +383,8 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     btnInviteFriend?.addEventListener('click', () => {
-        if (mixedModeHint) mixedModeHint.classList.remove('hidden'); 
+        isRandomMatchQueue = false;
+        if (mixedModeHint) mixedModeHint.classList.add('hidden'); 
         switchScreen(multiplayerLobbyScreen, modeSelectionScreen, 'mode-selection');
     });
 
@@ -500,10 +540,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 gameCenterText.classList.remove(...sizeClasses);
                 gameCenterText.classList.add('text-size-lg');
                 
+                const myPlayerId = currentConfig.starter === 'YOU' ? 1 : 2;
+                const isMyTurn = (engine.currentPlayer === myPlayerId);
+
                 if (isPassAndPlay || isOnlineMatch) {
-                    gameCenterText.innerText = currentConfig.starter === 'YOU' ? "P1'S TURN" : "P2'S TURN";
+                    gameCenterText.innerText = isMyTurn ? "YOUR TURN" : "OPPONENT'S TURN";
                 } else {
-                    gameCenterText.innerText = "YOUR TURN";
+                    gameCenterText.innerText = isMyTurn ? "YOUR TURN" : "BOT'S TURN";
                 }
             }
             startTimer(); 
@@ -578,10 +621,19 @@ document.addEventListener('DOMContentLoaded', () => {
             if (result.status === 'GAME_OVER_LIVES') {
                 handleGameOverDisplay("YOU LOST!", 'text-p2');
             } else if (result.status === 'WIN') {
-                let winMsg = isBot ? "BOT WINS!" : "YOU WIN!";
-                if (isPassAndPlay || isOnlineMatch) winMsg = playerMakingMove === 1 ? "P1 WINS!" : "P2 WINS!";
                 
-                handleGameOverDisplay(winMsg, isBot ? 'text-p2' : 'text-p1');
+                let winMsg = "";
+                const myPlayerId = currentConfig.starter === 'YOU' ? 1 : 2;
+                
+                if (isBot) {
+                    winMsg = "BOT WINS!";
+                } else if (isPassAndPlay || isOnlineMatch) {
+                    winMsg = playerMakingMove === myPlayerId ? "YOU WIN!" : "OPPONENT WINS!";
+                } else {
+                    winMsg = "YOU WIN!";
+                }
+                
+                handleGameOverDisplay(winMsg, isBot || (playerMakingMove !== myPlayerId && (isPassAndPlay || isOnlineMatch)) ? 'text-p2' : 'text-p1');
             } else {
                 handleGameOverDisplay("DRAW!", 'text-white');
             }
@@ -596,9 +648,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     gameCenterText.classList.remove('hidden', ...sizeClasses);
                     gameCenterText.classList.add('text-size-md');
                     
-                    const nextPlayerTurn = currentConfig.starter === 'YOU' 
-                        ? (engine.currentPlayer === 1 ? "P1'S TURN" : "P2'S TURN")
-                        : (engine.currentPlayer === 1 ? "P2'S TURN" : "P1'S TURN");
+                    const myPlayerId = currentConfig.starter === 'YOU' ? 1 : 2;
+                    const isMyTurn = (engine.currentPlayer === myPlayerId);
+                    const nextPlayerTurn = isMyTurn ? "YOUR TURN" : "OPPONENT'S TURN";
                         
                     gameCenterText.innerText = `COL ${colIndex + 1}\n${nextPlayerTurn}`; 
                 }
@@ -700,7 +752,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (btnExitGame) btnExitGame.addEventListener('click', exitToMenu);
     
-    // Per uscire durante il gioco premiamo REVEAL / SURRENDER. La rotellina ora apre solo i colori.
     if (btnActionPrimary) {
         btnActionPrimary.addEventListener('click', () => {
             handleGameOverDisplay("SURRENDERED!", 'text-p2');
