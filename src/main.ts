@@ -25,8 +25,11 @@ let finalLastMove: {col: number, player: number} | null = null;
 let finalVerdictText = "";
 let finalVerdictColorClass = "";
 
+// Palette di colori disponibili per i giocatori
+const COLOR_PALETTE = ['#F6D04C', '#E23D3D', '#4ade80', '#0ea5e9', '#a855f7', '#f97316', '#ec4899', '#ffffff'];
+
 // ==========================================
-// 2. RECUPERO ELEMENTI DOM
+// 2. RECUPERO ELEMENTI DOM E MODALE COLORI
 // ==========================================
 document.addEventListener('DOMContentLoaded', () => {
 
@@ -37,9 +40,20 @@ document.addEventListener('DOMContentLoaded', () => {
     const configScreen = document.getElementById('config-screen');
     const gameScreen = document.getElementById('game-screen'); 
 
+    // Referenze Modale Colori (Overlay)
+    const colorModal = document.getElementById('color-modal');
+    const btnCloseModal = document.getElementById('btn-close-modal');
+    const grid1 = document.getElementById('grid-c1');
+    const grid2 = document.getElementById('grid-c2');
+
     const btnBack = document.getElementById('btn-back');
     const btnLocalPlay = document.getElementById('btn-local-play');
     const btnOnlineMatch = document.getElementById('btn-online-match');
+    
+    // Pulsanti che aprono le Impostazioni/Colori
+    const btnSettings = document.getElementById('btn-settings');
+    const btnOpenColors = document.getElementById('btn-open-colors');
+    const btnInGameSettings = document.getElementById('btn-in-game-settings');
     
     const btnVsBot = document.getElementById('btn-vs-bot');
     const btnVsFriend = document.getElementById('btn-vs-friend');
@@ -67,32 +81,97 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnActionPrimary = document.getElementById('btn-action-primary');
     const timerDisplay = document.querySelector('.timer-display');
     const timeLeftEl = document.getElementById('time-left');
-    const iconBtn = document.querySelector('.icon-btn');
 
     const difficultySection = document.querySelector('[data-category="difficulty"]')?.closest('.config-section');
     const starterSection = document.querySelector('[data-category="starter"]')?.closest('.config-section');
     const btnStarterYou = document.querySelector('[data-category="starter"][data-value="YOU"]') as HTMLButtonElement;
     const btnStarterBot = document.querySelector('[data-category="starter"][data-value="BOT"]') as HTMLButtonElement;
-    const btnColorYellow = document.querySelector('[data-category="color"][data-value="YELLOW"]') as HTMLButtonElement;
-    const btnColorRed = document.querySelector('[data-category="color"][data-value="RED"]') as HTMLButtonElement;
 
     const bot = new Bot();
     
     const sizeClasses = ['text-size-sm', 'text-size-base', 'text-size-md', 'text-size-lg', 'text-size-xl'];
-    const colorClasses = ['text-white', 'text-red', 'text-yellow'];
+    const colorClasses = ['text-white', 'text-p1', 'text-p2'];
     
     const defaultConfig = {
         difficulty: 'EASY',
         starter: 'YOU',
-        color: 'YELLOW',
+        p1Color: '#F6D04C', // Default Giallo
+        p2Color: '#E23D3D', // Default Rosso
         time: 'NO TIME'
     };
+    
     const savedConfig = localStorage.getItem('blind_c4_settings');
     let currentConfig = savedConfig ? JSON.parse(savedConfig) : defaultConfig;
+
+    if(!currentConfig.p1Color) currentConfig.p1Color = '#F6D04C';
+    if(!currentConfig.p2Color) currentConfig.p2Color = '#E23D3D';
 
     if (!savedConfig) {
         localStorage.setItem('blind_c4_settings', JSON.stringify(currentConfig));
     }
+
+    applyColorsToDOM();
+
+    // --- FUNZIONI MODALE COLORI ---
+
+    function renderColorPalette() {
+        if (!grid1 || !grid2) return;
+        grid1.innerHTML = '';
+        grid2.innerHTML = '';
+        
+        // Popola la griglia dei colori per i due giocatori
+        COLOR_PALETTE.forEach(color => {
+            const sw1 = document.createElement('div');
+            sw1.className = 'color-swatch' + (currentConfig.p1Color === color ? ' selected' : '');
+            sw1.style.backgroundColor = color;
+            sw1.onclick = () => {
+                if (currentConfig.p2Color === color) currentConfig.p2Color = currentConfig.p1Color; 
+                currentConfig.p1Color = color;
+                applyColorsToDOM();
+                renderColorPalette(); // Ridisegna per mostrare i bordi bianchi corretti
+            };
+            grid1.appendChild(sw1);
+            
+            const sw2 = document.createElement('div');
+            sw2.className = 'color-swatch' + (currentConfig.p2Color === color ? ' selected' : '');
+            sw2.style.backgroundColor = color;
+            sw2.onclick = () => {
+                if (currentConfig.p1Color === color) currentConfig.p1Color = currentConfig.p2Color; 
+                currentConfig.p2Color = color;
+                applyColorsToDOM();
+                renderColorPalette(); 
+            };
+            grid2.appendChild(sw2);
+        });
+    }
+
+    function applyColorsToDOM() {
+        // Assegna le variabili CSS al root: questo aggiorna all'istante
+        // tutta l'interfaccia, pedine comprese, in tempo reale!
+        document.documentElement.style.setProperty('--p1-color', currentConfig.p1Color);
+        document.documentElement.style.setProperty('--p2-color', currentConfig.p2Color);
+        
+        if (btnOpenColors) {
+            btnOpenColors.style.borderColor = currentConfig.p1Color;
+            btnOpenColors.style.color = currentConfig.p1Color;
+        }
+    }
+
+    function openSettingsModal() {
+        renderColorPalette();
+        colorModal?.classList.remove('hidden');
+    }
+
+    // Colleghiamo tutti e 3 i pulsanti di "settings/colori" all'apertura del modale
+    btnSettings?.addEventListener('click', openSettingsModal); // Dal menu principale
+    btnOpenColors?.addEventListener('click', openSettingsModal); // Dalle impostazioni pre-partita
+    btnInGameSettings?.addEventListener('click', openSettingsModal); // La rotellina durante il gioco
+
+    // La X rossa chiude il popup e salva i dati
+    btnCloseModal?.addEventListener('click', () => {
+        colorModal?.classList.add('hidden');
+        localStorage.setItem('blind_c4_settings', JSON.stringify(currentConfig));
+    });
 
     function updateUI() {
         configBtns.forEach(btn => {
@@ -108,37 +187,13 @@ document.addEventListener('DOMContentLoaded', () => {
         if (isPassAndPlay || isOnlineMatch) {
             difficultySection?.classList.add('hidden'); 
             starterSection?.classList.remove('hidden'); 
-            
             if (btnStarterYou) btnStarterYou.innerText = 'PLAYER 1';
             if (btnStarterBot) btnStarterBot.innerText = 'PLAYER 2';
-            
-            if (btnColorYellow) {
-                btnColorYellow.innerHTML = 'P1 YEL<br>P2 RED';
-                btnColorYellow.classList.remove(...sizeClasses);
-                btnColorYellow.classList.add('text-size-sm');
-            }
-            if (btnColorRed) {
-                btnColorRed.innerHTML = 'P1 RED<br>P2 YEL';
-                btnColorRed.classList.remove(...sizeClasses);
-                btnColorRed.classList.add('text-size-sm');
-            }
         } else {
             difficultySection?.classList.remove('hidden'); 
             starterSection?.classList.remove('hidden');
-            
             if (btnStarterYou) btnStarterYou.innerText = 'YOU';
             if (btnStarterBot) btnStarterBot.innerText = 'BOT';
-            
-            if (btnColorYellow) {
-                btnColorYellow.innerText = 'YELLOW';
-                btnColorYellow.classList.remove(...sizeClasses);
-                btnColorYellow.classList.add('text-size-base');
-            }
-            if (btnColorRed) {
-                btnColorRed.innerText = 'RED';
-                btnColorRed.classList.remove(...sizeClasses);
-                btnColorRed.classList.add('text-size-base');
-            }
         }
     }
 
@@ -170,12 +225,11 @@ document.addEventListener('DOMContentLoaded', () => {
         isPassAndPlay = false; 
         
         currentConfig.starter = data.role === 1 ? 'YOU' : 'OPPONENT';
-        currentConfig.color = data.role === 1 ? 'YELLOW' : 'RED';
         
         switchScreen(multiplayerLobbyScreen, gameScreen, 'game-screen', false);
         initGame();
         
-        alert(data.role === 1 ? "MATCH FOUND! You go first (Yellow)" : "MATCH FOUND! Opponent goes first (Red)"); 
+        alert(data.role === 1 ? "MATCH FOUND! You go first" : "MATCH FOUND! Opponent goes first"); 
     });
 
 
@@ -357,7 +411,7 @@ document.addEventListener('DOMContentLoaded', () => {
             timeLeft--;
             if (timeLeftEl) timeLeftEl.innerText = timeLeft.toString();
             if (timeLeft <= 0) {
-                handleGameOverDisplay("TIME OUT!", 'text-red');
+                handleGameOverDisplay("TIME OUT!", 'text-p2');
                 endGameUI();
             }
         }, 1000);
@@ -381,7 +435,6 @@ document.addEventListener('DOMContentLoaded', () => {
             
             const botPlayerId = currentConfig.starter === 'YOU' ? 2 : 1;
             
-            // Attingiamo direttamente ai BigInt del nuovo motore
             const botPosition = botPlayerId === 1 ? engine.positionP1 : engine.positionP2;
             const mask = engine.mask;
             
@@ -493,12 +546,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const myPlayerId = currentConfig.starter === 'YOU' ? 1 : 2;
             const isMe = (playerMakingMove === myPlayerId);
-            const amIYellow = (currentConfig.color === 'YELLOW');
             
-            if ((isMe && amIYellow) || (!isMe && !amIYellow)) {
-                token.classList.add('token-yellow');
+            if (isMe) {
+                token.classList.add('token-p1');
             } else {
-                token.classList.add('token-red');
+                token.classList.add('token-p2');
             }
             revealBoard.appendChild(token);
         }
@@ -524,12 +576,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (result.status === 'GAME_OVER_LIVES' || result.status === 'WIN' || result.status === 'DRAW') {
             if (result.status === 'GAME_OVER_LIVES') {
-                handleGameOverDisplay("YOU LOST!", 'text-red');
+                handleGameOverDisplay("YOU LOST!", 'text-p2');
             } else if (result.status === 'WIN') {
                 let winMsg = isBot ? "BOT WINS!" : "YOU WIN!";
                 if (isPassAndPlay || isOnlineMatch) winMsg = playerMakingMove === 1 ? "P1 WINS!" : "P2 WINS!";
                 
-                handleGameOverDisplay(winMsg, isBot ? 'text-red' : 'text-yellow');
+                handleGameOverDisplay(winMsg, isBot ? 'text-p2' : 'text-p1');
             } else {
                 handleGameOverDisplay("DRAW!", 'text-white');
             }
@@ -607,7 +659,7 @@ document.addEventListener('DOMContentLoaded', () => {
             for(let i=0; i<children.length; i++) {
                 const child = children[i] as HTMLElement;
                 if(child.style.gridColumn === (w.c + 1).toString() && child.style.gridRow === (6 - w.r).toString()) {
-                    if (child.classList.contains('token-yellow') || child.classList.contains('token-red')) {
+                    if (child.classList.contains('token-p1') || child.classList.contains('token-p2')) {
                         child.classList.add('winning-token-outline');
                     }
                 }
@@ -647,11 +699,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (btnExitGame) btnExitGame.addEventListener('click', exitToMenu);
-    if (iconBtn) iconBtn.addEventListener('click', exitToMenu);
     
+    // Per uscire durante il gioco premiamo REVEAL / SURRENDER. La rotellina ora apre solo i colori.
     if (btnActionPrimary) {
         btnActionPrimary.addEventListener('click', () => {
-            handleGameOverDisplay("SURRENDERED!", 'text-red');
+            handleGameOverDisplay("SURRENDERED!", 'text-p2');
             endGameUI();
         });
     }
@@ -682,8 +734,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const myPlayerId = currentConfig.starter === 'YOU' ? 1 : 2;
             const botPlayerId = currentConfig.starter === 'YOU' ? 2 : 1;
-            const myColorClass = currentConfig.color === 'YELLOW' ? 'token-yellow' : 'token-red';
-            const botColorClass = currentConfig.color === 'YELLOW' ? 'token-red' : 'token-yellow';
 
             for (let r = 5; r >= 0; r--) {
                 for (let c = 0; c < 7; c++) {
@@ -694,8 +744,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     
                     if (finalGrid[c] && finalGrid[c].length > r) {
                         const tokenOwner = finalGrid[c][r];
-                        if (tokenOwner === myPlayerId) cell.classList.add(myColorClass);
-                        else if (tokenOwner === botPlayerId) cell.classList.add(botColorClass);
+                        if (tokenOwner === myPlayerId) cell.classList.add('token-p1');
+                        else if (tokenOwner === botPlayerId) cell.classList.add('token-p2');
                     }
 
                     const isWinCell = finalWinningCells.some(w => w.c === c && w.r === r);
@@ -703,7 +753,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     if (finalLastMove && finalLastMove.col === c && r === 0) {
                         cell.classList.add('last-move-arrow');
-                        cell.classList.add(finalLastMove.player === myPlayerId ? (currentConfig.color === 'YELLOW' ? 'arrow-yellow' : 'arrow-red') : (currentConfig.color === 'YELLOW' ? 'arrow-red' : 'arrow-yellow'));
+                        cell.classList.add(finalLastMove.player === myPlayerId ? 'arrow-p1' : 'arrow-p2');
                     }
                     revealBoard.appendChild(cell);
                 }

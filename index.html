@@ -13,8 +13,8 @@
 
       <!-- MAIN MENU -->
       <div id="main-menu" class="screen">
-        <h1 class="title-red">BLIND</h1>
-        <h2 class="title-yellow">CONNECT 4</h2>
+        <h1 class="title-p2">BLIND</h1>
+        <h2 class="title-p1">CONNECT 4</h2>
         
         <div class="menu-buttons">
           <button id="btn-local-play" class="btn-blue">LOCAL PLAY</button>
@@ -26,8 +26,8 @@
       <!-- LOCAL OPPONENT SELECTION -->
       <div id="local-opponent" class="screen hidden">
         <h1 class="mode-title">
-          <span class="text-red">LOCAL</span><br>
-          <span class="text-yellow">PLAY</span>
+          <span class="text-p2">LOCAL</span><br>
+          <span class="text-p1">PLAY</span>
         </h1>
         
         <div class="menu-buttons mt-30">
@@ -36,11 +36,11 @@
         </div>
       </div>
 
-      <!-- SCHERMATA MULTIPLAYER LOBBY (AGGIORNATA) -->
+      <!-- SCHERMATA MULTIPLAYER LOBBY -->
       <div id="multiplayer-lobby" class="screen hidden">
         <h1 class="mode-title">
-          <span class="text-red">ONLINE</span><br>
-          <span class="text-yellow">MATCH</span>
+          <span class="text-p2">ONLINE</span><br>
+          <span class="text-p1">MATCH</span>
         </h1>
         
         <div class="menu-buttons mt-30" id="multiplayer-controls">
@@ -60,14 +60,14 @@
                
                <!-- Amico 1 -->
                <li class="friend-item" data-id="user_123">
-                 <div class="friend-avatar bg-red"></div>
+                 <div class="friend-avatar bg-p2"></div>
                  <span class="friend-name">Work</span>
                  <span class="friend-status status-online"></span>
                </li>
                
                <!-- Amico 2 -->
                <li class="friend-item" data-id="user_456">
-                 <div class="friend-avatar bg-yellow"></div>
+                 <div class="friend-avatar bg-p1"></div>
                  <span class="friend-name">In</span>
                  <span class="friend-status status-online"></span>
                </li>
@@ -82,11 +82,11 @@
              </ul>
           </div>
           
-          <!-- Bottone Invito (Nascosto finché non si seleziona un amico) -->
+          <!-- Bottone Invito -->
           <button id="btn-invite-friend" class="btn-blue btn-invite hidden mt-20">INVITE SELECTED</button>
         </div>
 
-        <!-- Schermata di attesa (usata dopo l'invio dell'invito o in coda random) -->
+        <!-- Schermata di attesa -->
         <div id="waiting-message" class="hidden mt-30">
            <h2 class="text-success">WAITING...</h2>
            <p class="waiting-subtitle" id="display-wait-text">Waiting for opponent to accept</p>
@@ -96,15 +96,15 @@
       <!-- SCHERMATA SCELTA MODALITÀ -->
       <div id="mode-selection" class="screen hidden">
         <h1 class="mode-title">
-          <span class="text-red">CHOOSE</span><br>
-          <span class="text-yellow">MODE</span>
+          <span class="text-p2">CHOOSE</span><br>
+          <span class="text-p1">MODE</span>
         </h1>
         
         <div class="mode-cards-container">
           <button id="btn-mode-normal" class="mode-card">
             <div class="mode-icon normal-icon-css">
-              <div class="token token-red"></div>
-              <div class="token token-yellow"></div>
+              <div class="token token-p2"></div>
+              <div class="token token-p1"></div>
             </div>
             <h2>NORMAL</h2>
             <p>the classic version</p>
@@ -152,11 +152,10 @@
         </div>
 
         <div class="config-section">
-          <h3 class="config-title">COLOR</h3>
-          <div class="button-row">
-            <button class="btn-blue btn-half config-btn" data-category="color" data-value="YELLOW">YELLOW</button>
-            <button class="btn-blue btn-half config-btn" data-category="color" data-value="RED">RED</button>
-          </div>
+          <h3 class="config-title">COLORS</h3>
+          <button id="btn-open-colors" class="btn-transparent" style="width:100%;">
+            CUSTOMIZE COLORS
+          </button>
         </div>
 
         <div class="config-section">
@@ -174,7 +173,8 @@
       <div id="game-screen" class="screen hidden">
         
         <div class="top-bar">
-          <button class="icon-btn" aria-label="Settings">
+          <!-- Questa rotellina ora aprirà il modale dei colori -->
+          <button class="icon-btn" aria-label="Settings" id="btn-in-game-settings">
             <div class="css-gear"></div>
           </button>
           
@@ -217,6 +217,25 @@
           
         </div>
       </div>
+
+      <!-- COLOR MODAL (OVERLAY) -->
+      <div id="color-modal" class="modal-overlay hidden">
+        <div class="modal-content">
+          <button id="btn-close-modal" class="btn-close-x">&times;</button>
+          <h2 class="mode-title text-p1" style="margin-bottom: 20px; font-size: 2rem;">COLORS</h2>
+          <div style="display: flex; gap: 20px; width: 100%; justify-content: space-around;">
+              <div style="flex:1; display:flex; flex-direction:column; align-items:center;">
+                  <h3 class="text-p1" style="margin-bottom:15px; font-size:1.1rem;">YOU</h3>
+                  <div id="grid-c1" class="color-grid"></div>
+              </div>
+              <div style="flex:1; display:flex; flex-direction:column; align-items:center;">
+                  <h3 class="text-p2" style="margin-bottom:15px; font-size:1.1rem;">OPPONENT</h3>
+                  <div id="grid-c2" class="color-grid"></div>
+              </div>
+          </div>
+        </div>
+      </div>
+
     </div>
 
     <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
