@@ -424,8 +424,8 @@ body {
 
 .css-gear {
     position: relative;
-    width: 20px;
-    height: 20px;
+    width: 24px;
+    height: 24px;
     background-color: #8c96a3; 
     border-radius: 50%;
     transition: transform 0.4s ease;
@@ -437,10 +437,11 @@ body {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 8px;
-    height: 8px;
+    width: 10px;
+    height: 10px;
     background-color: #31363F; 
     border-radius: 50%;
+    z-index: 1; 
 }
 
 .css-gear::before {
@@ -448,17 +449,14 @@ body {
     position: absolute;
     top: 50%;
     left: 50%;
-    width: 5px; 
-    height: 5px;
+    width: 32px; 
+    height: 32px;
     transform: translate(-50%, -50%);
-    background: transparent; 
-    box-shadow: 
-         0 -11px 0 #8c96a3,        
-         0  11px 0 #8c96a3,        
-         9.5px -5.5px 0 #8c96a3,   
-        -9.5px  5.5px 0 #8c96a3,   
-         9.5px  5.5px 0 #8c96a3,   
-        -9.5px -5.5px 0 #8c96a3;   
+    border-radius: 50%;
+    background:
+        linear-gradient(0deg, transparent 42%, #8c96a3 42%, #8c96a3 58%, transparent 58%),
+        linear-gradient(60deg, transparent 42%, #8c96a3 42%, #8c96a3 58%, transparent 58%),
+        linear-gradient(120deg, transparent 42%, #8c96a3 42%, #8c96a3 58%, transparent 58%);
     z-index: -1; 
 }
 
@@ -533,7 +531,6 @@ body {
    SEZIONE AMICI & MULTIPLAYER
    ========================================= */
 
-/* Il divisorio orizzontale */
 .divider-container {
     display: flex;
     align-items: center;
@@ -555,7 +552,6 @@ body {
     text-transform: uppercase;
 }
 
-/* Lista degli amici (rettangolo arrotondato) */
 .friends-list-container {
     background-color: #1E1E1E;
     border: 2px solid #8C939D;
@@ -567,7 +563,6 @@ body {
     box-sizing: border-box;
 }
 
-/* Stile della scrollbar (opzionale ma molto pulito) */
 .friends-list-container::-webkit-scrollbar { width: 6px; }
 .friends-list-container::-webkit-scrollbar-thumb { background: #8C939D; border-radius: 10px; }
 
@@ -628,7 +623,7 @@ body {
 .btn-invite {
     background-color: #F6D04C;
     color: #1E1E1E;
-    width: 100%; /* Si adatta al contenitore */
+    width: 100%; 
 }
 
 /* =========================================

@@ -15,7 +15,6 @@ let isPassAndPlay = false;
 let isOnlineMatch = false;
 let currentRoomCode = "";
 
-// Nuovo Stato per il multiplayer ad inviti
 let selectedFriendId = "";
 
 let engine: GameEngine;
@@ -48,7 +47,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnModeBlind = document.getElementById('btn-mode-blind');   
     const mixedModeHint = document.getElementById('mixed-mode-hint');
 
-    // Nuovi elementi Multiplayer
     const btnRandomMatch = document.getElementById('btn-random-match');
     const friendItems = document.querySelectorAll('.friend-item');
     const btnInviteFriend = document.getElementById('btn-invite-friend');
@@ -107,7 +105,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-        // Nascondiamo "Difficoltà" in caso di partita tra due umani (Pass&Play o Online Friend)
         if (isPassAndPlay || isOnlineMatch) {
             difficultySection?.classList.add('hidden'); 
             starterSection?.classList.remove('hidden'); 
@@ -150,7 +147,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // 3. EVENTI SOCKET.IO
     // ==========================================
 
-    // Riceviamo la notifica che la stanza tra noi e l'amico è pronta per partire
     socket.on('game_ready', (msg: string) => {
         isOnlineMatch = true; 
         isPassAndPlay = false; 
@@ -173,8 +169,6 @@ document.addEventListener('DOMContentLoaded', () => {
         isOnlineMatch = true; 
         isPassAndPlay = false; 
         
-        // IL SERVER DECIDE CHI INIZIA E IL COLORE!
-        // Se role === 1 sei tu che inizi ed hai il Giallo. Altrimenti tocca all'altro (OPPONENT).
         currentConfig.starter = data.role === 1 ? 'YOU' : 'OPPONENT';
         currentConfig.color = data.role === 1 ? 'YELLOW' : 'RED';
         
@@ -224,7 +218,6 @@ document.addEventListener('DOMContentLoaded', () => {
         isOnlineMatch = true;
         isPassAndPlay = false;
         
-        // Resetta la lobby
         friendItems.forEach(i => i.classList.remove('selected'));
         selectedFriendId = "";
         btnInviteFriend?.classList.add('hidden');
@@ -276,19 +269,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     // ==========================================
-    // 5. AZIONI MULTIPLAYER (AMICI & RANDOM)
+    // 5. AZIONI MULTIPLAYER
     // ==========================================
     
     btnRandomMatch?.addEventListener('click', () => {
-        socket.emit('find_random_match'); // Parla col server
+        socket.emit('find_random_match'); 
         
-        // Nasconde il menu e mostra la scritta "WAITING..."
         if (multiplayerControls) multiplayerControls.classList.add('hidden');
         if (waitingMessage) waitingMessage.classList.remove('hidden');
         if (displayWaitText) displayWaitText.innerText = "Searching for an opponent...";
     });
 
-    // Logica di selezione visiva dell'amico
     friendItems.forEach(item => {
         item.addEventListener('click', () => {
             friendItems.forEach(i => i.classList.remove('selected'));
@@ -298,7 +289,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Cliccando Invita, l'utente passa PRIMA alle regole
     btnInviteFriend?.addEventListener('click', () => {
         if (mixedModeHint) mixedModeHint.classList.remove('hidden'); 
         switchScreen(multiplayerLobbyScreen, modeSelectionScreen, 'mode-selection');
@@ -309,13 +299,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // 6. GESTIONE MOTORE DI GIOCO & AVVIO
     // ==========================================
 
-    // IL BIVIO FINALE DEL TASTO PLAY
     btnPlay?.addEventListener('click', () => {
         if (isOnlineMatch && selectedFriendId !== "") {
-            // SE SIAMO ONLINE: Invia l'invito al server con le regole scelte
             socket.emit('invite_friend', { targetId: selectedFriendId, config: currentConfig });
             
-            // Nasconde i bottoni e mostra la schermata d'attesa nella lobby
             switchScreen(configScreen, multiplayerLobbyScreen, 'multiplayer-lobby', false);
             if (multiplayerControls) multiplayerControls.classList.add('hidden');
             if (waitingMessage) waitingMessage.classList.remove('hidden');
@@ -323,11 +310,9 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // SE SIAMO IN LOCALE: Avvia il gioco subito
         switchScreen(configScreen, gameScreen, 'game-screen', false);
         initGame();
     });
-
 
     function handleGameOverDisplay(text: string, colorClass: string) {
         finalVerdictText = text;
@@ -393,7 +378,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
         setTimeout(() => {
             if (!engine) return; 
-            const botChoice = bot.getMove(engine.getGridCopy(), currentConfig.difficulty);
+            
+            const botPlayerId = currentConfig.starter === 'YOU' ? 2 : 1;
+            
+            // Attingiamo direttamente ai BigInt del nuovo motore
+            const botPosition = botPlayerId === 1 ? engine.positionP1 : engine.positionP2;
+            const mask = engine.mask;
+            
+            const botChoice = bot.getMove(botPosition, mask, currentConfig.difficulty);
+            
             const targetButton = document.querySelector(`.col-btn[data-col="${botChoice}"]`) as HTMLButtonElement;
             if (targetButton) {
                 isBoardLocked = false; 
@@ -442,7 +435,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (isOnlineMatch) {
             const myPlayerId = currentConfig.starter === 'YOU' ? 1 : 2;
-            isBoardLocked = (engine.currentPlayer !== myPlayerId); // Si blocca se non è il mio turno
+            isBoardLocked = (engine.currentPlayer !== myPlayerId);
         } else {
             isBoardLocked = false;
         }
@@ -558,10 +551,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     gameCenterText.innerText = `COL ${colIndex + 1}\n${nextPlayerTurn}`; 
                 }
                 
-                // LOCK DINAMICO AD OGNI TURNO
                 if (isOnlineMatch) {
                     const myPlayerId = currentConfig.starter === 'YOU' ? 1 : 2;
-                    isBoardLocked = (engine.currentPlayer !== myPlayerId); // Blocca o sblocca in base a chi tocca
+                    isBoardLocked = (engine.currentPlayer !== myPlayerId); 
                 } else {
                     isBoardLocked = false;
                 }
@@ -590,7 +582,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const colIndex = parseInt(target.getAttribute('data-col') || '0', 10);
 
             if (isOnlineMatch) {
-                // ORA LEGGIAMO currentRoomCode, IL SERVER RICEVE LA MOSSA E TYPESCRIPT È FELICE
                 socket.emit('play_move', { roomCode: currentRoomCode, column: colIndex });
                 isBoardLocked = true; 
             } else {
